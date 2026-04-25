@@ -1,0 +1,93 @@
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using TravelPlanner.Shared.DTOs;
+using TravelService.Data;
+using TravelService.DTOs;
+using TravelService.Models;
+
+namespace TravelService.Services
+{
+    public class ChecklistService
+    {
+        private readonly TravelDbContext _db;
+        private readonly IMapper _mapper;
+
+        public ChecklistService(TravelDbContext db, IMapper mapper)
+        {
+            _db = db;
+            _mapper = mapper;
+        }
+
+        private async Task VerifyPlanOwnershipAsync(Guid planId, Guid userId)
+        {
+            var plan = await _db.TravelPlans.FindAsync(planId)
+                ?? throw new KeyNotFoundException("Travel plan not found.");
+
+            if (plan.UserId != userId)
+                throw new UnauthorizedAccessException("Access denied.");
+        }
+
+        public async Task<List<ChecklistItemDto>> GetAllForPlanAsync(Guid planId, Guid userId)
+        {
+            await VerifyPlanOwnershipAsync(planId, userId);
+
+            var items = await _db.ChecklistItems
+                .Where(c => c.TravelPlanId == planId)
+                .ToListAsync();
+
+            return _mapper.Map<List<ChecklistItemDto>>(items);
+        }
+
+        public async Task<ChecklistItemDto> CreateAsync(Guid planId, CreateChecklistItemDto dto, Guid userId)
+        {
+            await VerifyPlanOwnershipAsync(planId, userId);
+
+            var item = new ChecklistItem
+            {
+                Id = Guid.NewGuid(),
+                TravelPlanId = planId,
+                Name = dto.Name,
+                IsCompleted = false
+            };
+
+            _db.ChecklistItems.Add(item);
+            await _db.SaveChangesAsync();
+
+            return _mapper.Map<ChecklistItemDto>(item);
+        }
+
+        public async Task<ChecklistItemDto> UpdateAsync(Guid id, UpdateChecklistItemDto dto, Guid userId)
+        {
+            var item = await _db.ChecklistItems
+                .Include(c => c.TravelPlan)
+                .FirstOrDefaultAsync(c => c.Id == id)
+                ?? throw new KeyNotFoundException("Checklist item not found.");
+
+            if (item.TravelPlan.UserId != userId)
+                throw new UnauthorizedAccessException("Access denied.");
+
+            if (dto.Name != null)
+                item.Name = dto.Name;
+
+            if (dto.IsCompleted.HasValue)
+                item.IsCompleted = dto.IsCompleted.Value;
+
+            await _db.SaveChangesAsync();
+            return _mapper.Map<ChecklistItemDto>(item);
+        }
+
+        public async Task DeleteAsync(Guid id, Guid userId)
+        {
+            var item = await _db.ChecklistItems
+                .Include(c => c.TravelPlan)
+                .FirstOrDefaultAsync(c => c.Id == id)
+                ?? throw new KeyNotFoundException("Checklist item not found.");
+
+            if (item.TravelPlan.UserId != userId)
+                throw new UnauthorizedAccessException("Access denied.");
+
+            _db.ChecklistItems.Remove(item);
+            await _db.SaveChangesAsync();
+        }
+    }
+}

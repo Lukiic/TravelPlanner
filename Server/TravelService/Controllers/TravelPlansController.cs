@@ -1,5 +1,6 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
+using TravelPlanner.Shared.DTOs;
 using TravelService.DTOs;
 using TravelService.Extensions;
 using TravelService.Services;
@@ -38,6 +39,20 @@ namespace TravelService.Controllers
         public async Task<IActionResult> Delete(Guid id)
         {
             await _service.DeleteAsync(id, User.GetUserId());
+            return NoContent();
+        }
+
+        // Admin methods
+        [HttpGet("/admin/travel-plans")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> GetAllAdmin()
+            => Ok(await _service.GetAllAdminAsync());
+
+        [HttpDelete("/admin/travel-plans/{id:guid}")]
+        [Authorize(Roles = "Admin")]
+        public async Task<IActionResult> DeleteAdmin(Guid id)
+        {
+            await _service.DeleteAdminAsync(id);
             return NoContent();
         }
     }
