@@ -427,3 +427,7 @@ FodyWeavers.xsd
 *.msix
 *.msm
 *.msp
+
+TravelPlannerApp/ApplicationParameters/Cloud.xml
+TravelPlannerApp/PublishProfiles/Cloud.xml
+TravelPlannerApp/StartupServiceParameters/Cloud.xml

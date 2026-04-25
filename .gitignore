@@ -1,7 +1,0 @@
-﻿################################################################################
-# This .gitignore file was automatically created by Microsoft(R) Visual Studio.
-################################################################################
-
-/Server/TravelPlannerApp/ApplicationParameters/Cloud.xml
-/Server/TravelPlannerApp/PublishProfiles/Cloud.xml
-/Server/TravelPlannerApp/StartupServiceParameters/Cloud.xml
