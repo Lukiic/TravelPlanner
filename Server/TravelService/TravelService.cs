@@ -63,6 +63,11 @@ namespace TravelService
                         builder.Services.AddScoped<TravelPlanService>();
                         builder.Services.AddScoped<DestinationService>();
                         builder.Services.AddScoped<ActivityService>();
+                        builder.Services.AddScoped<ExpenseService>();
+                        builder.Services.AddScoped<ChecklistService>();
+                        builder.Services.AddScoped<PdfService>();
+                        builder.Services.AddSingleton<SharingProxyService>(); // Singleton — stateless
+                        builder.Services.AddSingleton<QrCodeService>();       // Singleton — stateless
 
                         // JWT Authentication (same secret as UserService)
                         var jwtSecret = builder.Configuration["Jwt:Secret"]!;
@@ -84,7 +89,34 @@ namespace TravelService
                         builder.Services.AddAuthorization();
                         builder.Services.AddControllers();
                         builder.Services.AddEndpointsApiExplorer();
-                        builder.Services.AddSwaggerGen();
+
+                        builder.Services.AddSwaggerGen(options =>
+                        {
+                            options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                            {
+                                Name = "Authorization",
+                                Type = Microsoft.OpenApi.Models.SecuritySchemeType.Http,
+                                Scheme = "bearer",
+                                BearerFormat = "JWT",
+                                In = Microsoft.OpenApi.Models.ParameterLocation.Header,
+                                Description = "Enter 'Bearer {your token}'"
+                            });
+
+                            options.AddSecurityRequirement(new Microsoft.OpenApi.Models.OpenApiSecurityRequirement
+                            {
+                                {
+                                    new Microsoft.OpenApi.Models.OpenApiSecurityScheme
+                                    {
+                                        Reference = new Microsoft.OpenApi.Models.OpenApiReference
+                                        {
+                                            Type = Microsoft.OpenApi.Models.ReferenceType.SecurityScheme,
+                                            Id = "Bearer"
+                                        }
+                                    },
+                                    new string[] {}
+                                }
+                            });
+                        });
 
                         builder.WebHost
                             .UseKestrel()

@@ -12,15 +12,15 @@ namespace TravelService.Controllers
     [ApiController]
     public class SharingController : ControllerBase
     {
-        private readonly SharingProxyService _sharing;
-        private readonly QrCodeService _qrCode;
+        private readonly SharingProxyService _sharingService;
+        private readonly QrCodeService _qrCodeService;
         private readonly TravelDbContext _db;
         private readonly IConfiguration _configuration;
 
-        public SharingController(SharingProxyService sharing, QrCodeService qrCode, TravelDbContext db, IConfiguration configuration)
+        public SharingController(SharingProxyService sharingService, QrCodeService qrCodeService, TravelDbContext db, IConfiguration configuration)
         {
-            _sharing = sharing;
-            _qrCode = qrCode;
+            _sharingService = sharingService;
+            _qrCodeService = qrCodeService;
             _db = db;
             _configuration = configuration;
         }
@@ -44,13 +44,13 @@ namespace TravelService.Controllers
             if (accessType != "VIEW" && accessType != "EDIT")
                 return BadRequest("AccessType must be VIEW or EDIT.");
 
-            var token = await _sharing.CreateTokenAsync(planId, accessType);
+            var token = await _sharingService.CreateTokenAsync(planId, accessType);
 
             // Build the shareable URL (frontend route)
             var baseUrl = _configuration["AppSettings:FrontendBaseUrl"] ?? "http://localhost:5173";
             var shareUrl = $"{baseUrl.TrimEnd('/')}/shared/{token}";
 
-            var qrBytes = _qrCode.GenerateQrCode(shareUrl);
+            var qrBytes = _qrCodeService.GenerateQrCode(shareUrl);
             var qrBase64 = Convert.ToBase64String(qrBytes);
 
             return Ok(new ShareTokenResponseDto
@@ -75,7 +75,7 @@ namespace TravelService.Controllers
             if (plan.UserId != userId)
                 return Forbid();
 
-            var tokens = await _sharing.GetTokensForPlanAsync(planId);
+            var tokens = await _sharingService.GetTokensForPlanAsync(planId);
             return Ok(tokens);
         }
 
@@ -84,7 +84,7 @@ namespace TravelService.Controllers
         [Authorize]
         public async Task<IActionResult> RevokeToken(string token)
         {
-            await _sharing.RevokeTokenAsync(token);
+            await _sharingService.RevokeTokenAsync(token);
             return NoContent();
         }
 
@@ -96,7 +96,7 @@ namespace TravelService.Controllers
             SharingTokenDto tokenDto;
             try
             {
-                tokenDto = await _sharing.ValidateTokenAsync(token);
+                tokenDto = await _sharingService.ValidateTokenAsync(token);
             }
             catch (KeyNotFoundException)
             {
@@ -145,7 +145,7 @@ namespace TravelService.Controllers
             SharingTokenDto tokenDto;
             try
             {
-                tokenDto = await _sharing.ValidateTokenAsync(token);
+                tokenDto = await _sharingService.ValidateTokenAsync(token);
             }
             catch (Exception ex)
             {
