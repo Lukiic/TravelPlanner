@@ -1,0 +1,100 @@
+﻿using AutoMapper;
+using Microsoft.EntityFrameworkCore;
+using TravelPlanner.Shared.DTOs;
+using TravelService.Data;
+using TravelService.DTOs;
+using TravelService.Models;
+
+namespace TravelService.Services
+{
+    public class TravelPlanService
+    {
+        private readonly TravelDbContext _db;
+        private readonly IMapper _mapper;
+
+        public TravelPlanService(TravelDbContext db, IMapper mapper)
+        {
+            _db = db;
+            _mapper = mapper;
+        }
+
+        public async Task<List<TravelPlanDto>> GetAllForUserAsync(Guid userId)
+        {
+            var plans = await _db.TravelPlans.Where(tp => tp.UserId == userId).ToListAsync();
+            return _mapper.Map<List<TravelPlanDto>>(plans);
+        }
+
+        public async Task<TravelPlanDto> GetByIdAsync(Guid id, Guid userId)
+        {
+            var plan = await _db.TravelPlans.FindAsync(id)
+                ?? throw new KeyNotFoundException("Travel plan not found.");
+
+            if (plan.UserId != userId)
+                throw new UnauthorizedAccessException("Access denied.");
+
+            return _mapper.Map<TravelPlanDto>(plan);
+        }
+
+        public async Task<TravelPlanDto> CreateAsync(CreateTravelPlanDto dto, Guid userId)
+        {
+            if (dto.EndDate < dto.StartDate)
+                throw new InvalidOperationException("EndDate cannot be before StartDate.");
+
+            if (dto.Budget < 0)
+                throw new InvalidOperationException("Budget cannot be negative.");
+
+            var plan = new TravelPlan
+            {
+                Id = Guid.NewGuid(),
+                UserId = userId,
+                Name = dto.Name,
+                Description = dto.Description,
+                StartDate = dto.StartDate,
+                EndDate = dto.EndDate,
+                Budget = dto.Budget,
+                Notes = dto.Notes,
+                CreatedAt = DateTime.UtcNow
+            };
+
+            _db.TravelPlans.Add(plan);
+            await _db.SaveChangesAsync();
+
+            return _mapper.Map<TravelPlanDto>(plan);
+        }
+
+        public async Task<TravelPlanDto> UpdateAsync(Guid id, Guid userId, UpdateTravelPlanDto dto)
+        {
+            var plan = await _db.TravelPlans.FindAsync(id)
+                ?? throw new KeyNotFoundException("Travel plan not found.");
+
+            if (plan.UserId != userId)
+                throw new UnauthorizedAccessException("Access denied.");
+
+            if (dto.Name != null) plan.Name = dto.Name;
+            if (dto.Description != null) plan.Description = dto.Description;
+            if (dto.StartDate.HasValue) plan.StartDate = dto.StartDate.Value;
+            if (dto.EndDate.HasValue) plan.EndDate = dto.EndDate.Value;
+            if (dto.Budget.HasValue) plan.Budget = dto.Budget.Value;
+            if (dto.Notes != null) plan.Notes = dto.Notes;
+
+            if (plan.EndDate < plan.StartDate)
+                throw new InvalidOperationException("EndDate cannot be before StartDate.");
+
+            await _db.SaveChangesAsync();
+
+            return _mapper.Map<TravelPlanDto>(plan);
+        }
+
+        public async Task DeleteAsync(Guid id, Guid userId)
+        {
+            var plan = await _db.TravelPlans.FindAsync(id)
+                ?? throw new KeyNotFoundException("Travel plan not found.");
+
+            if (plan.UserId != userId)
+                throw new UnauthorizedAccessException("Access denied.");
+
+            _db.TravelPlans.Remove(plan);
+            await _db.SaveChangesAsync();
+        }
+    }
+}
