@@ -1,5 +1,8 @@
+using Microsoft.AspNetCore.Authentication.JwtBearer;
 using Microsoft.AspNetCore.Hosting;
+using Microsoft.EntityFrameworkCore;
 using Microsoft.Extensions.DependencyInjection;
+using Microsoft.IdentityModel.Tokens;
 using Microsoft.ServiceFabric.Data;
 using Microsoft.ServiceFabric.Services.Communication.AspNetCore;
 using Microsoft.ServiceFabric.Services.Communication.Runtime;
@@ -9,8 +12,13 @@ using System.Collections.Generic;
 using System.Fabric;
 using System.IO;
 using System.Linq;
+using System.Text;
 using System.Threading;
 using System.Threading.Tasks;
+using UserService.Data;
+using UserService.Mappings;
+using UserService.Middleware;
+using UserService.Services;
 
 namespace UserService
 {
@@ -19,9 +27,7 @@ namespace UserService
     /// </summary>
     internal sealed class UserService : StatelessService
     {
-        public UserService(StatelessServiceContext context)
-            : base(context)
-        { }
+        public UserService(StatelessServiceContext context) : base(context) { }
 
         /// <summary>
         /// Optional override to create listeners (like tcp, http) for this service instance.
@@ -39,20 +45,71 @@ namespace UserService
                         var builder = WebApplication.CreateBuilder();
 
                         builder.Services.AddSingleton<StatelessServiceContext>(serviceContext);
-                        builder.WebHost
-                                    .UseKestrel()
-                                    .UseContentRoot(Directory.GetCurrentDirectory())
-                                    .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.None)
-                                    .UseUrls(url);
+
+                        // Configuration
+                        builder.Configuration
+                            .AddJsonFile("appsettings.json", optional: false)
+                            .AddJsonFile("appsettings.Development.json", optional: true)
+                            .AddEnvironmentVariables();
+
+                        // Database
+                        builder.Services.AddDbContext<UserDbContext>(options =>
+                            options.UseSqlServer(builder.Configuration.GetConnectionString("DefaultConnection")));
+
+                        // AutoMapper
+                        builder.Services.AddAutoMapper(typeof(UserMappingProfile));
+
+                        // Services
+                        builder.Services.AddScoped<JwtService>();
+                        builder.Services.AddScoped<AuthService>();
+                        builder.Services.AddScoped<UserManagementService>();
+
+                        // JWT Authentication
+                        var jwtSecret = builder.Configuration["Jwt:Secret"]!;
+                        builder.Services.AddAuthentication(JwtBearerDefaults.AuthenticationScheme)
+                            .AddJwtBearer(options =>
+                            {
+                                options.TokenValidationParameters = new TokenValidationParameters
+                                {
+                                    ValidateIssuer = true,
+                                    ValidateAudience = true,
+                                    ValidateLifetime = true,
+                                    ValidateIssuerSigningKey = true,
+                                    ValidIssuer = builder.Configuration["Jwt:Issuer"],
+                                    ValidAudience = builder.Configuration["Jwt:Audience"],
+                                    IssuerSigningKey = new SymmetricSecurityKey(Encoding.UTF8.GetBytes(jwtSecret))
+                                };
+                            });
+
+                        builder.Services.AddAuthorization();
                         builder.Services.AddControllers();
                         builder.Services.AddEndpointsApiExplorer();
                         builder.Services.AddSwaggerGen();
+
+                        builder.WebHost
+                            .UseKestrel()
+                            .UseContentRoot(Directory.GetCurrentDirectory())
+                            .UseServiceFabricIntegration(listener, ServiceFabricIntegrationOptions.None)
+                            .UseUrls(url);
+
                         var app = builder.Build();
+
+                        // Run migrations on startup
+                        using (var scope = app.Services.CreateScope())
+                        {
+                            var db = scope.ServiceProvider.GetRequiredService<UserDbContext>();
+                            db.Database.Migrate();
+                        }
+
+                        app.UseMiddleware<ExceptionMiddleware>();
+
                         if (app.Environment.IsDevelopment())
                         {
-                        app.UseSwagger();
-                        app.UseSwaggerUI();
+                            app.UseSwagger();
+                            app.UseSwaggerUI();
                         }
+
+                        app.UseAuthentication();
                         app.UseAuthorization();
                         app.MapControllers();
 
