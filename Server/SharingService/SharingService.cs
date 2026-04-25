@@ -25,6 +25,7 @@ namespace SharingService
             _sharingServiceImpl = new SharingServiceImpl(StateManager);
         }
 
+        // Register the remoting listener
         protected override IEnumerable<ServiceReplicaListener> CreateServiceReplicaListeners()
             => this.CreateServiceRemotingReplicaListeners();
 
@@ -39,5 +40,11 @@ namespace SharingService
 
         public Task<List<SharingTokenDto>> GetTokensForPlanAsync(Guid travelPlanId)
             => _sharingServiceImpl.GetTokensForPlanAsync(travelPlanId);
+
+        protected override Task RunAsync(CancellationToken cancellationToken)
+        {
+            // No background work needed because remoting listener handles all calls
+            return Task.CompletedTask;
+        }
     }
 }

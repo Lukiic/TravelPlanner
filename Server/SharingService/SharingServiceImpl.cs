@@ -13,18 +13,31 @@ namespace SharingService
     public class SharingServiceImpl : ISharingService
     {
         private readonly IReliableStateManager _stateManager;
+        private const string DictionaryName = "sharingTokens";
 
         public SharingServiceImpl(IReliableStateManager stateManager)
         {
             _stateManager = stateManager;
         }
 
+        private async Task<IReliableDictionary<string, SharingTokenData>> GetDictionaryAsync()
+            => await _stateManager.GetOrAddAsync<IReliableDictionary<string, SharingTokenData>>(DictionaryName);
+
+        private static SharingTokenDto MapToDto(SharingTokenData data) => new()
+        {
+            Token = data.Token,
+            TravelPlanId = data.TravelPlanId,
+            AccessType = data.AccessType,
+            CreatedAt = data.CreatedAt,
+            ExpiresAt = data.ExpiresAt
+        };
+
         public async Task<string> CreateShareTokenAsync(Guid travelPlanId, string accessType)
         {
-            var tokens = await _stateManager.GetOrAddAsync<IReliableDictionary<string, SharingTokenDto>>("sharingTokens");
+            var dict = await GetDictionaryAsync();
             var token = Guid.NewGuid().ToString("N");
 
-            var dto = new SharingTokenDto
+            var data = new SharingTokenData
             {
                 Token = token,
                 TravelPlanId = travelPlanId,
@@ -34,7 +47,7 @@ namespace SharingService
             };
 
             using var tx = _stateManager.CreateTransaction();
-            await tokens.AddOrUpdateAsync(tx, token, dto, (k, v) => dto);
+            await dict.AddOrUpdateAsync(tx, token, data, (k, v) => data);
             await tx.CommitAsync();
 
             return token;
@@ -42,46 +55,50 @@ namespace SharingService
 
         public async Task<SharingTokenDto> ValidateTokenAsync(string token)
         {
-            var tokens = await _stateManager.GetOrAddAsync<IReliableDictionary<string, SharingTokenDto>>("sharingTokens");
+            var dict = await GetDictionaryAsync();
 
             using var tx = _stateManager.CreateTransaction();
-            var result = await tokens.TryGetValueAsync(tx, token);
+            var result = await dict.TryGetValueAsync(tx, token);
 
             if (!result.HasValue)
                 throw new KeyNotFoundException("Token not found.");
 
-            var dto = result.Value;
-            if (dto.ExpiresAt.HasValue && dto.ExpiresAt.Value < DateTime.UtcNow)
+            var data = result.Value;
+            if (data.ExpiresAt.HasValue && data.ExpiresAt.Value < DateTime.UtcNow)
                 throw new InvalidOperationException("Token has expired.");
 
-            return dto;
+            return MapToDto(data);
         }
 
         public async Task RevokeTokenAsync(string token)
         {
-            var tokens = await _stateManager.GetOrAddAsync<IReliableDictionary<string, SharingTokenDto>>("sharingTokens");
+            var dict = await GetDictionaryAsync();
 
             using var tx = _stateManager.CreateTransaction();
-            await tokens.TryRemoveAsync(tx, token);
+            await dict.TryRemoveAsync(tx, token);
             await tx.CommitAsync();
         }
 
         public async Task<List<SharingTokenDto>> GetTokensForPlanAsync(Guid travelPlanId)
         {
-            var tokens = await _stateManager.GetOrAddAsync<IReliableDictionary<string, SharingTokenDto>>("sharingTokens");
-            var result = new List<SharingTokenDto>();
+            var dict = await GetDictionaryAsync();
+            var results = new List<SharingTokenDto>();
 
             using var tx = _stateManager.CreateTransaction();
-            var enumerable = await tokens.CreateEnumerableAsync(tx);
-            var enumerator = enumerable.GetAsyncEnumerator();
+            var enumerable = await dict.CreateEnumerableAsync(tx);
+            using var enumerator = enumerable.GetAsyncEnumerator();
 
             while (await enumerator.MoveNextAsync(CancellationToken.None))
             {
-                if (enumerator.Current.Value.TravelPlanId == travelPlanId)
-                    result.Add(enumerator.Current.Value);
+                var pair = enumerator.Current;
+
+                if (pair.Value.TravelPlanId == travelPlanId)
+                {
+                    results.Add(MapToDto(pair.Value));
+                }
             }
 
-            return result;
+            return results;
         }
     }
 }
