@@ -50,8 +50,12 @@
     @apply bg-navy-800 rounded-xl border border-navy-700 shadow-card;
   }
 
-  .input {
-    @apply w-full bg-navy-900 border border-navy-600 rounded-lg px-4 py-2.5 text-slate-200 placeholder-slate-400 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/50 transition-all duration-200 font-body text-sm;
+  .input-base {
+    @apply w-full bg-navy-800 border border-navy-700 rounded-lg px-4 py-2.5 text-slate-200 placeholder-slate-500 focus:outline-none focus:border-teal-500 focus:ring-1 focus:ring-teal-500/50 transition-all duration-200 font-body text-sm;
+  }
+
+  .select-base {
+    @apply input-base appearance-none cursor-pointer;
   }
 
   .label {
@@ -171,4 +175,23 @@
 .select-base option {
   background-color: #1e293b;
   color: #ffffff;
+}
+
+input[type="date"],
+input[type="time"],
+input[type="datetime-local"] {
+  color-scheme: dark;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator,
+input[type="time"]::-webkit-calendar-picker-indicator,
+input[type="datetime-local"]::-webkit-calendar-picker-indicator {
+  filter: invert(0.8) sepia(1) saturate(3) hue-rotate(140deg);
+  cursor: pointer;
+  opacity: 0.7;
+}
+
+input[type="date"]::-webkit-calendar-picker-indicator:hover,
+input[type="time"]::-webkit-calendar-picker-indicator:hover {
+  opacity: 1;
 }

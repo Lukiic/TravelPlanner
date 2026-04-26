@@ -10,6 +10,8 @@ interface ActivityFormProps {
     onSubmit: (data: CreateActivityRequest) => Promise<void>;
     onCancel: () => void;
     loading?: boolean;
+    travelPlanStartDate?: string;
+    travelPlanEndDate?: string;
 }
 
 interface FormErrors {
@@ -35,6 +37,8 @@ export default function ActivityForm({
     onSubmit,
     onCancel,
     loading = false,
+    travelPlanStartDate,
+    travelPlanEndDate
 }: ActivityFormProps) {
     const [values, setValues] = useState<CreateActivityRequest>({
         ...empty,
@@ -79,6 +83,10 @@ export default function ActivityForm({
 
         if (!values.date)
             e.date = 'Date is required';
+        else if (travelPlanStartDate && values.date < travelPlanStartDate)
+            e.date = `Activity cannot be before the trip starts (${travelPlanStartDate})`;
+        else if (travelPlanEndDate && values.date > travelPlanEndDate)
+            e.date = `Activity cannot be after the trip ends (${travelPlanEndDate})`;
 
         if (values.estimatedCost < 0)
             e.estimatedCost = 'Cost cannot be negative';
@@ -112,6 +120,8 @@ export default function ActivityForm({
                     value={values.date}
                     onChange={set('date')}
                     error={errors.date}
+                    min={travelPlanStartDate}
+                    max={travelPlanEndDate}
                 />
                 <Input
                     label="Time (optional)"

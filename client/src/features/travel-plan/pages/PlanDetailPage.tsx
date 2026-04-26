@@ -119,10 +119,17 @@ export default function PlanDetailPage() {
                     <OverviewTab plan={plan} duration={duration} />
                 )}
                 {activeTab === 'destinations' && (
-                    <DestinationsSection planId={plan.id} />
+                    <DestinationsSection
+                        planId={plan.id}
+                        travelPlanStartDate={plan.startDate.slice(0, 10)}
+                        travelPlanEndDate={plan.endDate.slice(0, 10)}
+                    />
                 )}
                 {activeTab === 'activities' && (
-                    <ActivitiesSection planId={plan.id} />
+                    <ActivitiesSection
+                        planId={plan.id}
+                        travelPlanStartDate={plan.startDate.slice(0, 10)}
+                        travelPlanEndDate={plan.endDate.slice(0, 10)} />
                 )}
                 {activeTab === 'expenses' && (
                     <ExpensesSection planId={plan.id} />

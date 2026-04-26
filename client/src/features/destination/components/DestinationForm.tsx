@@ -9,6 +9,8 @@ interface DestinationFormProps {
     onSubmit: (data: CreateDestinationRequest) => Promise<void>;
     onCancel: () => void;
     loading?: boolean;
+    travelPlanStartDate?: string;
+    travelPlanEndDate?: string;
 }
 
 interface FormErrors {
@@ -31,6 +33,8 @@ export default function DestinationForm({
     onSubmit,
     onCancel,
     loading = false,
+    travelPlanStartDate,
+    travelPlanEndDate
 }: DestinationFormProps) {
     const [values, setValues] = useState<CreateDestinationRequest>({
         ...empty,
@@ -73,11 +77,17 @@ export default function DestinationForm({
 
         if (!values.arrivalDate)
             e.arrivalDate = 'Arrival date is required';
+        else if (travelPlanStartDate && values.arrivalDate < travelPlanStartDate)
+            e.arrivalDate = `Arrival cannot be before the trip starts (${travelPlanStartDate})`;
+        else if (travelPlanEndDate && values.arrivalDate > travelPlanEndDate)
+            e.arrivalDate = `Arrival cannot be after the trip ends (${travelPlanEndDate})`;
 
         if (!values.departureDate)
             e.departureDate = 'Departure date is required';
         else if (values.arrivalDate && values.departureDate < values.arrivalDate)
             e.departureDate = 'Departure must be on or after arrival';
+        else if (travelPlanEndDate && values.departureDate > travelPlanEndDate)
+            e.departureDate = `Departure cannot be after the trip ends (${travelPlanEndDate})`;
 
         setErrors(e);
 
@@ -117,6 +127,8 @@ export default function DestinationForm({
                     value={values.arrivalDate}
                     onChange={set('arrivalDate')}
                     error={errors.arrivalDate}
+                    min={travelPlanStartDate}
+                    max={travelPlanEndDate}
                 />
                 <Input
                     label="Departure Date"
@@ -124,7 +136,8 @@ export default function DestinationForm({
                     value={values.departureDate}
                     onChange={set('departureDate')}
                     error={errors.departureDate}
-                    min={values.arrivalDate || undefined}
+                    min={values.arrivalDate || travelPlanStartDate}
+                    max={travelPlanEndDate}
                 />
             </div>
             <div className="flex flex-col gap-1.5">

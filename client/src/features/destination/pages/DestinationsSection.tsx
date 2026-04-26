@@ -14,9 +14,11 @@ import DestinationList from '../components/DestinationList';
 interface DestinationsSectionProps {
     planId: string;
     readOnly?: boolean;
+    travelPlanStartDate?: string;
+    travelPlanEndDate?: string;
 }
 
-export default function DestinationsSection({ planId, readOnly = false }: DestinationsSectionProps) {
+export default function DestinationsSection({ planId, readOnly = false, travelPlanStartDate, travelPlanEndDate }: DestinationsSectionProps) {
     const [destinations, setDestinations] = useState<Destination[]>([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);
@@ -113,6 +115,8 @@ export default function DestinationsSection({ planId, readOnly = false }: Destin
                     onSubmit={handleSubmit}
                     onCancel={closeModal}
                     loading={saving}
+                    travelPlanStartDate={travelPlanStartDate}
+                    travelPlanEndDate={travelPlanEndDate}
                 />
             </Modal>
 

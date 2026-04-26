@@ -18,12 +18,16 @@ interface ActivitiesSectionProps {
     planId: string;
     readOnly?: boolean;
     onActivityUpdate?: (id: string, data: Partial<CreateActivityRequest>) => Promise<Activity>;
+    travelPlanStartDate?: string;
+    travelPlanEndDate?: string;
 }
 
 export default function ActivitiesSection({
     planId,
     readOnly = false,
     onActivityUpdate,
+    travelPlanStartDate,
+    travelPlanEndDate
 }: ActivitiesSectionProps) {
     const [activities, setActivities] = useState<Activity[]>([]);
     const [loading, setLoading] = useState(true);
@@ -153,6 +157,8 @@ export default function ActivitiesSection({
                         onSubmit={handleSubmit}
                         onCancel={closeModal}
                         loading={saving}
+                        travelPlanStartDate={travelPlanStartDate}
+                        travelPlanEndDate={travelPlanEndDate}
                     />
                 </Modal>
             )}
