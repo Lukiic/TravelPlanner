@@ -90,6 +90,24 @@ namespace TravelService
                         builder.Services.AddControllers();
                         builder.Services.AddEndpointsApiExplorer();
 
+                        // CORS
+                        var frontendUrl = builder.Configuration["AppSettings:FrontendBaseUrl"];
+                        if (string.IsNullOrEmpty(frontendUrl))
+                        {
+                            throw new Exception("FrontendBaseUrl is not configured.");
+                        }
+
+                        builder.Services.AddCors(options =>
+                        {
+                            options.AddPolicy("AllowFrontend", policy =>
+                            {
+                                policy
+                                    .WithOrigins(frontendUrl)
+                                    .AllowAnyHeader()
+                                    .AllowAnyMethod();
+                            });
+                        });
+
                         builder.Services.AddSwaggerGen(options =>
                         {
                             options.AddSecurityDefinition("Bearer", new Microsoft.OpenApi.Models.OpenApiSecurityScheme
@@ -140,6 +158,8 @@ namespace TravelService
                             app.UseSwagger();
                             app.UseSwaggerUI();
                         }
+
+                        app.UseCors("AllowFrontend");
 
                         app.UseAuthentication();
                         app.UseAuthorization();
