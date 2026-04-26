@@ -1,0 +1,1 @@
+export type ActivityStatus = 'Planned' | 'Reserved' | 'Completed' | 'Cancelled';
