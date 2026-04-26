@@ -69,7 +69,7 @@ export default function EditPlanPage({ travelPlanApi }: TravelPlanProps) {
                 title="Edit Plan"
                 subtitle={plan?.name}
                 actions={
-                    <Button variant="ghost" onClick={() => navigate(`/plans/${id}`)}>
+                    <Button variant="ghost" onClick={() => navigate(-1)}>
                         ← Cancel
                     </Button>
                 }

@@ -69,8 +69,7 @@ export default function SharedPlanPage({ sharingApi }: SharedPlanPageProps) {
     const isEdit = accessType === 'EDIT';
     const duration = differenceInDays(parseISO(plan.endDate), parseISO(plan.startDate));
 
-    // ── Static API objects — return pre-fetched data, no network calls ──
-    //    This is the core fix for the redirect-to-login bug.
+    // Static API objects — return pre-fetched data, no network calls
     const staticDestinationApi: IDestinationApi = {
         getAll: async () => data.destinations ?? [],
         create: async () => { throw new Error('Read-only'); },

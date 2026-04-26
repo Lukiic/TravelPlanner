@@ -1,4 +1,5 @@
-﻿using Microsoft.AspNetCore.Authorization;
+﻿using AutoMapper;
+using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TravelPlanner.Shared.DTOs;
@@ -16,13 +17,20 @@ namespace TravelService.Controllers
         private readonly QrCodeService _qrCodeService;
         private readonly TravelDbContext _db;
         private readonly IConfiguration _configuration;
+        private readonly IMapper _mapper;
 
-        public SharingController(SharingProxyService sharingService, QrCodeService qrCodeService, TravelDbContext db, IConfiguration configuration)
+        public SharingController(
+            SharingProxyService sharingService,
+            QrCodeService qrCodeService,
+            TravelDbContext db,
+            IConfiguration configuration,
+            IMapper mapper)
         {
             _sharingService = sharingService;
             _qrCodeService = qrCodeService;
             _db = db;
             _configuration = configuration;
+            _mapper = mapper;
         }
 
         // Create a share token and QR code for a plan
@@ -117,24 +125,27 @@ namespace TravelService.Controllers
             if (plan == null)
                 return NotFound("Travel plan no longer exists.");
 
-            return Ok(new
+            var response = new SharedPlanResponseDto
             {
-                accessType = tokenDto.AccessType,
-                plan = new
+                AccessType = tokenDto.AccessType,
+                Plan = new SharedPlanDto
                 {
-                    plan.Id,
-                    plan.Name,
-                    plan.Description,
-                    plan.StartDate,
-                    plan.EndDate,
-                    plan.Budget,
-                    plan.Notes,
+                    Id = plan.Id,
+                    Name = plan.Name,
+                    Description = plan.Description,
+                    StartDate = plan.StartDate,
+                    EndDate = plan.EndDate,
+                    Budget = plan.Budget,
+                    Notes = plan.Notes,
+                    CreatedAt = plan.CreatedAt,
                 },
-                destinations = plan.Destinations,
-                activities = plan.Activities,
-                expenses = plan.Expenses,
-                checklist = plan.ChecklistItems
-            });
+                Destinations = _mapper.Map<List<DestinationDto>>(plan.Destinations),
+                Activities = _mapper.Map<List<ActivityDto>>(plan.Activities),
+                Expenses = _mapper.Map<List<ExpenseDto>>(plan.Expenses),
+                Checklist = _mapper.Map<List<ChecklistItemDto>>(plan.ChecklistItems),
+            };
+
+            return Ok(response);
         }
 
         // Update an activity using shared link
@@ -152,7 +163,7 @@ namespace TravelService.Controllers
                 return BadRequest(ex.Message);
             }
 
-            if (tokenDto.AccessType != "EDIT")      // VIEW tokens don't have permission for modifying data
+            if (tokenDto.AccessType != "EDIT")
                 return Forbid();
 
             var activity = await _db.Activities
@@ -174,7 +185,8 @@ namespace TravelService.Controllers
             if (dto.Status != null) activity.Status = dto.Status;
 
             await _db.SaveChangesAsync();
-            return Ok(activity);
+
+            return Ok(_mapper.Map<ActivityDto>(activity));
         }
     }
 }
