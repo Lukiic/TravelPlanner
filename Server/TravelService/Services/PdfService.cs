@@ -11,9 +11,9 @@ namespace TravelService.Services
         public byte[] GenerateTravelPlanPdf(TravelPlan plan)
         {
             using var ms = new MemoryStream();
-            var writer = new PdfWriter(ms);
-            var pdf = new PdfDocument(writer);
-            var document = new Document(pdf);
+            using var writer = new PdfWriter(ms);
+            using var pdf = new PdfDocument(writer);
+            using var document = new Document(pdf);
 
             // Title
             document.Add(new Paragraph(plan.Name)
@@ -119,7 +119,7 @@ namespace TravelService.Services
                 document.Add(new Paragraph("Checklist").SetFontSize(16).SetBold());
                 foreach (var item in plan.ChecklistItems)
                 {
-                    var tick = item.IsCompleted ? "✓" : "☐";
+                    var tick = item.IsCompleted ? "[x]" : "[ ]";
                     document.Add(new Paragraph($"  {tick}  {item.Name}").SetFontSize(11));
                 }
             }
