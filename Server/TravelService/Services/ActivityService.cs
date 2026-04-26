@@ -3,7 +3,9 @@ using Microsoft.EntityFrameworkCore;
 using TravelPlanner.Shared.DTOs;
 using TravelService.Data;
 using TravelService.DTOs;
+using TravelService.Extensions;
 using TravelService.Models;
+using static System.Net.WebRequestMethods;
 
 namespace TravelService.Services
 {
@@ -11,15 +13,34 @@ namespace TravelService.Services
     {
         private readonly TravelDbContext _db;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _http;
 
         private static readonly string[] ValidStatuses = { "Planned", "Reserved", "Completed", "Cancelled" };
 
-        public ActivityService(TravelDbContext db, IMapper mapper) { _db = db; _mapper = mapper; }
+        public ActivityService(TravelDbContext db, IMapper mapper, IHttpContextAccessor http)
+        {
+            _db = db;
+            _mapper = mapper;
+            _http = http;
+        }
 
         private async Task VerifyPlanOwnershipAsync(Guid planId, Guid userId)
         {
             var plan = await _db.TravelPlans.FindAsync(planId)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
+
+            // Admin users bypass ownership checks
+            if (_http.HttpContext?.User.IsInRole("Admin") == true)
+                return;
+
+            // Share token users bypass ownership checks
+            var sharePlanId = _http.HttpContext?.User.GetShareTokenPlanId();
+            if (sharePlanId.HasValue)
+            {
+                if (sharePlanId.Value != planId)
+                    throw new UnauthorizedAccessException("Share token is not valid for this plan.");
+                return;
+            }
 
             if (plan.UserId != userId)
                 throw new UnauthorizedAccessException("Access denied.");

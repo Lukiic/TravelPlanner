@@ -60,6 +60,7 @@ namespace TravelService
                         builder.Services.AddAutoMapper(typeof(TravelMappingProfile));
 
                         // Services
+                        builder.Services.AddHttpContextAccessor();
                         builder.Services.AddScoped<TravelPlanService>();
                         builder.Services.AddScoped<DestinationService>();
                         builder.Services.AddScoped<ActivityService>();
@@ -67,7 +68,7 @@ namespace TravelService
                         builder.Services.AddScoped<ChecklistService>();
                         builder.Services.AddScoped<PdfService>();
                         builder.Services.AddSingleton<SharingProxyService>(); // Singleton — stateless
-                        builder.Services.AddSingleton<QrCodeService>();       // Singleton — stateless
+                        builder.Services.AddSingleton<QrCodeService>();       // Singleton — stateless                        
 
                         // JWT Authentication (same secret as UserService)
                         var jwtSecret = builder.Configuration["Jwt:Secret"]!;
@@ -160,6 +161,8 @@ namespace TravelService
                         }
 
                         app.UseCors("AllowFrontend");
+
+                        app.UseMiddleware<ShareTokenMiddleware>();
 
                         app.UseAuthentication();
                         app.UseAuthorization();

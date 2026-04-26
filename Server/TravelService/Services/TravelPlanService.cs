@@ -5,7 +5,9 @@ using Microsoft.EntityFrameworkCore;
 using TravelPlanner.Shared.DTOs;
 using TravelService.Data;
 using TravelService.DTOs;
+using TravelService.Extensions;
 using TravelService.Models;
+using static System.Net.WebRequestMethods;
 
 namespace TravelService.Services
 {
@@ -13,11 +15,32 @@ namespace TravelService.Services
     {
         private readonly TravelDbContext _db;
         private readonly IMapper _mapper;
+        private readonly IHttpContextAccessor _http;
 
-        public TravelPlanService(TravelDbContext db, IMapper mapper)
+        public TravelPlanService(TravelDbContext db, IMapper mapper, IHttpContextAccessor http)
         {
             _db = db;
             _mapper = mapper;
+            _http = http;
+        }
+
+        private async Task VerifyPlanOwnershipAsync(TravelPlan plan, Guid userId)
+        {
+            // Admin users bypass ownership checks
+            if (_http.HttpContext?.User.IsInRole("Admin") == true)
+                return;
+
+            // Share token users bypass ownership checks
+            var sharePlanId = _http.HttpContext?.User.GetShareTokenPlanId();
+            if (sharePlanId.HasValue)
+            {
+                if (sharePlanId.Value != plan.Id)
+                    throw new UnauthorizedAccessException("Share token is not valid for this plan.");
+                return;
+            }
+
+            if (plan.UserId != userId)
+                throw new UnauthorizedAccessException("Access denied.");
         }
 
         public async Task<List<TravelPlanDto>> GetAllForUserAsync(Guid userId)
@@ -31,8 +54,7 @@ namespace TravelService.Services
             var plan = await _db.TravelPlans.FindAsync(id)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
 
-            if (plan.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied.");
+            await VerifyPlanOwnershipAsync(plan, userId);
 
             return _mapper.Map<TravelPlanDto>(plan);
         }
@@ -69,8 +91,7 @@ namespace TravelService.Services
             var plan = await _db.TravelPlans.FindAsync(id)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
 
-            if (plan.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied.");
+            await VerifyPlanOwnershipAsync(plan, userId);
 
             if (dto.Name != null) plan.Name = dto.Name;
             if (dto.Description != null) plan.Description = dto.Description;
@@ -92,8 +113,7 @@ namespace TravelService.Services
             var plan = await _db.TravelPlans.FindAsync(id)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
 
-            if (plan.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied.");
+            await VerifyPlanOwnershipAsync(plan, userId);
 
             _db.TravelPlans.Remove(plan);
             await _db.SaveChangesAsync();

@@ -1,17 +1,14 @@
-import { useState, useEffect } from 'react';
+import { useState, useEffect, useMemo } from 'react';
 import { useParams } from 'react-router-dom';
 import { format, parseISO, differenceInDays } from 'date-fns';
+import { sharingApi } from '../api/SharingApi';
+import { createSharedApis } from '../api/SharedApiFactory';
 import type { SharedPlanData } from '../types/SharedPlanData';
 import DestinationsSection from '../../destination/pages/DestinationsSection';
 import ActivitiesSection from '../../activity/pages/ActivitiesSection';
 import ExpensesSection from '../../expense/pages/ExpensesSection';
 import ChecklistSection from '../../checklist/pages/ChecklistSection';
 import Spinner from '../../ui/components/Spinner';
-import type { ISharingApi } from '../api/ISharingApi';
-import type { IActivityApi } from '../../activity/api/IActivityApi';
-import type { IDestinationApi } from '../../destination/api/IDestinationApi';
-import type { IExpenseApi } from '../../expense/api/IExpenseApi';
-import type { IChecklistApi } from '../../checklist/api/IChecklistApi';
 
 type Tab = 'overview' | 'destinations' | 'activities' | 'expenses' | 'checklist';
 
@@ -23,16 +20,17 @@ const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'checklist', label: 'Checklist', icon: '✅' },
 ];
 
-interface SharedPlanPageProps {
-    sharingApi: ISharingApi;
-}
-
-export default function SharedPlanPage({ sharingApi }: SharedPlanPageProps) {
+export default function SharedPlanPage() {
     const { token } = useParams<{ token: string }>();
     const [data, setData] = useState<SharedPlanData | null>(null);
     const [loading, setLoading] = useState(true);
     const [error, setError] = useState<string | null>(null);
     const [activeTab, setActiveTab] = useState<Tab>('overview');
+
+    const sharedApis = useMemo(
+        () => token ? createSharedApis(token) : null,
+        [token]
+    );
 
     useEffect(() => {
         if (!token)
@@ -53,7 +51,7 @@ export default function SharedPlanPage({ sharingApi }: SharedPlanPageProps) {
 
     if (loading) return <Spinner fullScreen />;
 
-    if (error || !data) {
+    if (error || !data || !sharedApis) {
         return (
             <div className="min-h-screen bg-navy-950 flex items-center justify-center p-4">
                 <div className="text-center max-w-sm">
@@ -68,55 +66,6 @@ export default function SharedPlanPage({ sharingApi }: SharedPlanPageProps) {
     const { plan, accessType } = data;
     const isEdit = accessType === 'EDIT';
     const duration = differenceInDays(parseISO(plan.endDate), parseISO(plan.startDate));
-
-    // Static API objects — return pre-fetched data, no network calls
-    const staticDestinationApi: IDestinationApi = {
-        getAll: async () => data.destinations ?? [],
-        create: async () => { throw new Error('Read-only'); },
-        update: async () => { throw new Error('Read-only'); },
-        delete: async () => { throw new Error('Read-only'); },
-    };
-
-    const staticExpenseApi: IExpenseApi = {
-        getAll: async () => data.expenses ?? [],
-        create: async () => { throw new Error('Read-only'); },
-        update: async () => { throw new Error('Read-only'); },
-        delete: async () => { throw new Error('Read-only'); },
-        getBudgetSummary: async () => ({
-            totalBudget: plan.budget,
-            totalSpent: (data.expenses ?? []).reduce((s, e) => s + e.amount, 0),
-            remainingBudget: plan.budget - (data.expenses ?? []).reduce((s, e) => s + e.amount, 0),
-            spentByCategory: (data.expenses ?? []).reduce<Record<string, number>>((acc, e) => {
-                acc[e.category] = (acc[e.category] ?? 0) + e.amount;
-                return acc;
-            }, {}),
-        }),
-    };
-
-    const staticChecklistApi: IChecklistApi = {
-        getAll: async () => data.checklist ?? [],
-        create: async () => { throw new Error('Read-only'); },
-        update: async () => { throw new Error('Read-only'); },
-        delete: async () => { throw new Error('Read-only'); },
-        toggle: async () => { throw new Error('Read-only'); },
-    };
-
-    // For EDIT tokens, activities can be updated via the shared endpoint
-    const sharedActivityApi: IActivityApi = {
-        getAll: async () => data.activities ?? [],
-
-        getById: async (_planId: string, id: string) =>
-            data.activities.find(a => a.id === id) ?? (() => { throw new Error('Not found'); })(),
-
-        create: async () => { throw new Error('Use shared endpoint'); },
-
-        update: token
-            ? async (_planId: string, id: string, updateData: any) =>
-                sharingApi.updateSharedActivity(token, id, updateData)
-            : async () => { throw new Error('No token'); },
-
-        delete: async () => { throw new Error('Not allowed via shared link'); },
-    };
 
     return (
         <div className="min-h-screen bg-navy-950">
@@ -133,7 +82,7 @@ export default function SharedPlanPage({ sharingApi }: SharedPlanPageProps) {
                 }`}>
                 <span>{isEdit ? '✏️' : '👁️'}</span>
                 {isEdit
-                    ? 'You can edit activities in this shared plan.'
+                    ? 'You have edit access to this shared plan.'
                     : 'You are viewing this plan in read-only mode.'}
             </div>
 
@@ -185,22 +134,33 @@ export default function SharedPlanPage({ sharingApi }: SharedPlanPageProps) {
                     </div>
                 )}
 
-                {/* Each section receives a static API */}
                 {activeTab === 'destinations' && (
-                    <DestinationsSection planId={plan.id} destinationApi={staticDestinationApi} />
+                    <DestinationsSection
+                        planId={plan.id}
+                        readOnly={!isEdit}
+                        destinationApi={sharedApis.destinationApi}
+                    />
                 )}
                 {activeTab === 'activities' && (
                     <ActivitiesSection
                         planId={plan.id}
                         readOnly={!isEdit}
-                        activityApi={sharedActivityApi}
+                        activityApi={sharedApis.activityApi}
                     />
                 )}
                 {activeTab === 'expenses' && (
-                    <ExpensesSection planId={plan.id} expenseApi={staticExpenseApi} />
+                    <ExpensesSection
+                        planId={plan.id}
+                        readOnly={!isEdit}
+                        expenseApi={sharedApis.expenseApi}
+                    />
                 )}
                 {activeTab === 'checklist' && (
-                    <ChecklistSection planId={plan.id} checklistApi={staticChecklistApi} />
+                    <ChecklistSection
+                        planId={plan.id}
+                        readOnly={!isEdit}
+                        checklistApi={sharedApis.checklistApi}
+                    />
                 )}
             </div>
         </div>

@@ -34,7 +34,7 @@ export default function App() {
           {/* Public */}
           <Route path="/login" element={<LoginPage authApi={authApi} />} />
           <Route path="/register" element={<RegisterPage authApi={authApi} />} />
-          <Route path="/shared/:token" element={<SharedPlanPage sharingApi={sharingApi} />} />
+          <Route path="/shared/:token" element={<SharedPlanPage />} />
 
           {/* Private — inside AppShell */}
           <Route element={<PrivateRoute />}>
