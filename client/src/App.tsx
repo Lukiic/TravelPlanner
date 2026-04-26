@@ -8,6 +8,9 @@ import AppShell from './features/ui/layout/AppShell';
 import AdminRoute from './features/ui/routes/AdminRoute';
 import PrivateRoute from './features/ui/routes/PrivateRoute';
 import NotFoundPage from './features/ui/pages/NotFoundPage';
+import CreatePlanPage from './features/travel-plan/pages/CreatePlanPage';
+import DashboardPage from './features/travel-plan/pages/DashboardPage';
+import EditPlanPage from './features/travel-plan/pages/EditPlanPage';
 
 export default function App() {
   return (
@@ -21,6 +24,9 @@ export default function App() {
           {/* Private — inside AppShell */}
           <Route element={<PrivateRoute />}>
             <Route element={<AppShell />}>
+              <Route path="/" element={<DashboardPage />} />
+              <Route path="/plans/new" element={<CreatePlanPage />} />
+              <Route path="/plans/:id/edit" element={<EditPlanPage />} />
 
               {/* Admin */}
               <Route element={<AdminRoute />}>
