@@ -2,8 +2,9 @@ import travelApi from '../../../api/travel.api';
 import type { BudgetSummary } from '../types/BudgetSummary';
 import type { CreateExpenseRequest } from '../types/CreateExpenseRequest';
 import type { Expense } from '../types/Expense';
+import type { IExpenseApi } from './IExpenseApi';
 
-export const expenseApi = {
+export const expenseApi: IExpenseApi = {
     getAll: (planId: string) =>
         travelApi.get<Expense[]>(`/travel-plans/${planId}/expenses`).then(r => r.data),
 

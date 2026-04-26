@@ -9,8 +9,13 @@ import ExpensesSection from '../../expense/pages/ExpensesSection';
 import ShareSection from '../../sharing/pages/ShareSection';
 import Button from '../../ui/components/Button';
 import Spinner from '../../ui/components/Spinner';
-import { travelPlanApi } from '../api/travel-plan.api';
 import type { TravelPlan } from '../types/TravelPlan';
+import type { ITravelPlanApi } from '../api/ITravelPlanApi';
+import type { IDestinationApi } from '../../destination/api/IDestinationApi';
+import type { IActivityApi } from '../../activity/api/IActivityApi';
+import type { IChecklistApi } from '../../checklist/api/IChecklistApi';
+import type { IExpenseApi } from '../../expense/api/IExpenseApi';
+import type { ISharingApi } from '../../sharing/api/ISharingApi';
 
 
 type Tab = 'overview' | 'destinations' | 'activities' | 'expenses' | 'checklist' | 'share';
@@ -24,7 +29,16 @@ const tabs: { id: Tab; label: string; icon: string }[] = [
     { id: 'share', label: 'Share', icon: '🔗' },
 ];
 
-export default function PlanDetailPage() {
+interface PlanDetailPageProps {
+    travelPlanApi: ITravelPlanApi;
+    destinationApi: IDestinationApi;
+    activityApi: IActivityApi;
+    checklistApi: IChecklistApi;
+    expenseApi: IExpenseApi;
+    sharingApi: ISharingApi;
+}
+
+export default function PlanDetailPage({ travelPlanApi, destinationApi, activityApi, checklistApi, expenseApi, sharingApi }: PlanDetailPageProps) {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
@@ -123,22 +137,25 @@ export default function PlanDetailPage() {
                         planId={plan.id}
                         travelPlanStartDate={plan.startDate.slice(0, 10)}
                         travelPlanEndDate={plan.endDate.slice(0, 10)}
-                    />
+                        destinationApi={destinationApi} />
                 )}
                 {activeTab === 'activities' && (
                     <ActivitiesSection
                         planId={plan.id}
                         travelPlanStartDate={plan.startDate.slice(0, 10)}
-                        travelPlanEndDate={plan.endDate.slice(0, 10)} />
+                        travelPlanEndDate={plan.endDate.slice(0, 10)}
+                        activityApi={activityApi} />
                 )}
                 {activeTab === 'expenses' && (
-                    <ExpensesSection planId={plan.id} />
+                    <ExpensesSection planId={plan.id}
+                        expenseApi={expenseApi} />
                 )}
                 {activeTab === 'checklist' && (
-                    <ChecklistSection planId={plan.id} />
+                    <ChecklistSection planId={plan.id}
+                        checklistApi={checklistApi} />
                 )}
                 {activeTab === 'share' && (
-                    <ShareSection planId={plan.id} />
+                    <ShareSection planId={plan.id} sharingApi={sharingApi} />
                 )}
             </div>
         </div>

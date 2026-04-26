@@ -1,7 +1,8 @@
 import travelApi from '../../../api/travel.api';
 import type { ChecklistItem } from '../types/ChecklistItem';
+import type { IChecklistApi } from './IChecklistApi';
 
-export const checklistApi = {
+export const checklistApi: IChecklistApi = {
     getAll: (planId: string) =>
         travelApi.get<ChecklistItem[]>(`/travel-plans/${planId}/checklist`).then(r => r.data),
 

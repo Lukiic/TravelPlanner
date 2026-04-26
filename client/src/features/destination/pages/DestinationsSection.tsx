@@ -4,11 +4,11 @@ import Button from '../../ui/components/Button';
 import ConfirmDialog from '../../ui/components/ConfirmDialog';
 import Modal from '../../ui/components/Modal';
 import Spinner from '../../ui/components/Spinner';
-import { destinationApi } from '../api/destination.api';
 import type { CreateDestinationRequest } from '../types/CreateDestinationRequest';
 import type { Destination } from '../types/Destination';
 import DestinationForm from '../components/DestinationForm';
 import DestinationList from '../components/DestinationList';
+import type { IDestinationApi } from '../api/IDestinationApi';
 
 
 interface DestinationsSectionProps {
@@ -16,9 +16,16 @@ interface DestinationsSectionProps {
     readOnly?: boolean;
     travelPlanStartDate?: string;
     travelPlanEndDate?: string;
+    destinationApi: IDestinationApi;
 }
 
-export default function DestinationsSection({ planId, readOnly = false, travelPlanStartDate, travelPlanEndDate }: DestinationsSectionProps) {
+export default function DestinationsSection({
+    planId,
+    readOnly = false,
+    travelPlanStartDate,
+    travelPlanEndDate,
+    destinationApi
+}: DestinationsSectionProps) {
     const [destinations, setDestinations] = useState<Destination[]>([]);
     const [loading, setLoading] = useState(true);
     const [modalOpen, setModalOpen] = useState(false);

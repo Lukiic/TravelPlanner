@@ -1,14 +1,15 @@
 import { useState } from 'react';
-import { adminApi } from '../api/admin.api';
 import { toast } from 'react-toastify';
 import type { User } from '../../auth/types/User';
 import Button from '../../ui/components/Button';
 import Input from '../../ui/components/Input';
 import type { CreateUserRequest } from '../types/CreateUserRequest';
+import type { IAdminApi } from '../api/IAdminApi';
 
 interface CreateUserFormProps {
     onSuccess: (user: User) => void;
     onCancel: () => void;
+    adminApi: IAdminApi;
 }
 
 interface FormErrors {
@@ -17,7 +18,7 @@ interface FormErrors {
     password?: string;
 }
 
-export default function CreateUserForm({ onSuccess, onCancel }: CreateUserFormProps) {
+export default function CreateUserForm({ onSuccess, onCancel, adminApi }: CreateUserFormProps) {
     const [values, setValues] = useState<CreateUserRequest>({
         name: '',
         email: '',

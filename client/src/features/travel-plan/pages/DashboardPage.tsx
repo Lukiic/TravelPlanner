@@ -7,10 +7,10 @@ import ConfirmDialog from '../../ui/components/ConfirmDialog';
 import EmptyState from '../../ui/components/EmptyState';
 import Spinner from '../../ui/components/Spinner';
 import PageHeader from '../../ui/layout/PageHeader';
-import { travelPlanApi } from '../api/travel-plan.api';
 import PlanCard from '../components/PlanCard';
+import type { TravelPlanProps } from '../types/TravelPlanProps';
 
-export default function DashboardPage() {
+export default function DashboardPage({ travelPlanApi }: TravelPlanProps) {
     const navigate = useNavigate();
     const [plans, setPlans] = useState<TravelPlan[]>([]);
     const [loading, setLoading] = useState(true);

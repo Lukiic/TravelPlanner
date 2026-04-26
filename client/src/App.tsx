@@ -16,6 +16,14 @@ import AppShell from './features/ui/layout/AppShell';
 import NotFoundPage from './features/ui/pages/NotFoundPage';
 import AdminRoute from './features/ui/routes/AdminRoute';
 import PrivateRoute from './features/ui/routes/PrivateRoute';
+import { authApi } from './features/auth/api/AuthApi';
+import { travelPlanApi } from './features/travel-plan/api/TravelPlanApi';
+import { sharingApi } from './features/sharing/api/SharingApi';
+import { adminApi } from './features/admin/api/AdminApi';
+import { activityApi } from './features/activity/api/ActivityApi';
+import { checklistApi } from './features/checklist/api/ChecklistApi';
+import { destinationApi } from './features/destination/api/DestinationApi';
+import { expenseApi } from './features/expense/api/ExpenseApi';
 
 
 export default function App() {
@@ -24,24 +32,24 @@ export default function App() {
       <BrowserRouter>
         <Routes>
           {/* Public */}
-          <Route path="/login" element={<LoginPage />} />
-          <Route path="/register" element={<RegisterPage />} />
-          <Route path="/shared/:token" element={<SharedPlanPage />} />
+          <Route path="/login" element={<LoginPage authApi={authApi} />} />
+          <Route path="/register" element={<RegisterPage authApi={authApi} />} />
+          <Route path="/shared/:token" element={<SharedPlanPage sharingApi={sharingApi} />} />
 
           {/* Private — inside AppShell */}
           <Route element={<PrivateRoute />}>
             <Route element={<AppShell />}>
-              <Route path="/" element={<DashboardPage />} />
-              <Route path="/plans/new" element={<CreatePlanPage />} />
-              <Route path="/plans/:id" element={<PlanDetailPage />} />
-              <Route path="/plans/:id/edit" element={<EditPlanPage />} />
+              <Route path="/" element={<DashboardPage travelPlanApi={travelPlanApi} />} />
+              <Route path="/plans/new" element={<CreatePlanPage travelPlanApi={travelPlanApi} />} />
+              <Route path="/plans/:id" element={<PlanDetailPage travelPlanApi={travelPlanApi} destinationApi={destinationApi} activityApi={activityApi} checklistApi={checklistApi} expenseApi={expenseApi} sharingApi={sharingApi} />} />
+              <Route path="/plans/:id/edit" element={<EditPlanPage travelPlanApi={travelPlanApi} />} />
 
               {/* Admin */}
               <Route element={<AdminRoute />}>
                 <Route element={<AdminLayout />}>
                   <Route path="/admin" element={<Navigate to="/admin/users" replace />} />
-                  <Route path="/admin/users" element={<AdminUsersPage />} />
-                  <Route path="/admin/plans" element={<AdminPlansPage />} />
+                  <Route path="/admin/users" element={<AdminUsersPage adminApi={adminApi} />} />
+                  <Route path="/admin/plans" element={<AdminPlansPage adminApi={adminApi} />} />
                 </Route>
               </Route>
             </Route>

@@ -129,11 +129,11 @@ namespace TravelService.Controllers
                     plan.EndDate,
                     plan.Budget,
                     plan.Notes,
-                    destinations = plan.Destinations,
-                    activities = plan.Activities,
-                    expenses = plan.Expenses,
-                    checklistItems = plan.ChecklistItems
-                }
+                },
+                destinations = plan.Destinations,
+                activities = plan.Activities,
+                expenses = plan.Expenses,
+                checklist = plan.ChecklistItems
             });
         }
 

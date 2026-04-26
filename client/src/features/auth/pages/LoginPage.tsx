@@ -1,6 +1,7 @@
 import LoginForm from "../components/LoginForm";
+import type { AuthProps } from "../types/AuthProps";
 
-export default function LoginPage() {
+export default function LoginPage({ authApi }: AuthProps) {
     return (
         <div className="min-h-screen bg-navy-950 flex items-center justify-center p-4">
             <div className="w-full max-w-sm">
@@ -14,7 +15,7 @@ export default function LoginPage() {
                 {/* Card */}
                 <div className="bg-navy-900 border border-navy-700 rounded-2xl p-8 shadow-card">
                     <h2 className="font-display text-xl font-semibold text-white mb-6">Welcome back</h2>
-                    <LoginForm />
+                    <LoginForm authApi={authApi} />
                 </div>
             </div>
         </div>

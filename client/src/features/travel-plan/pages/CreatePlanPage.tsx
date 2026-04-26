@@ -3,11 +3,11 @@ import { useNavigate } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import Button from '../../ui/components/Button';
 import PageHeader from '../../ui/layout/PageHeader';
-import { travelPlanApi } from '../api/travel-plan.api';
 import PlanForm from '../components/PlanForm';
 import type { CreateTravelPlanRequest } from '../types/CreateTravelPlanRequest';
+import type { TravelPlanProps } from '../types/TravelPlanProps';
 
-export default function CreatePlanPage() {
+export default function CreatePlanPage({ travelPlanApi }: TravelPlanProps) {
     const navigate = useNavigate();
     const [loading, setLoading] = useState(false);
 

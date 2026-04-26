@@ -3,19 +3,20 @@ import { toast } from 'react-toastify';
 import Button from '../../ui/components/Button';
 import ConfirmDialog from '../../ui/components/ConfirmDialog';
 import Spinner from '../../ui/components/Spinner';
-import { sharingApi } from '../api/sharing.api';
 import ShareModal from '../components/ShareModal';
 import ShareTokenList from '../components/ShareTokenList';
 import type { AccessType } from '../types/AccessType';
 import type { ShareResponse } from '../types/ShareResponse';
 import type { ShareToken } from '../types/ShareToken';
+import type { ISharingApi } from '../api/ISharingApi';
 
 
 interface ShareSectionProps {
     planId: string;
+    sharingApi: ISharingApi;
 }
 
-export default function ShareSection({ planId }: ShareSectionProps) {
+export default function ShareSection({ planId, sharingApi }: ShareSectionProps) {
     const [tokens, setTokens] = useState<ShareToken[]>([]);
     const [loading, setLoading] = useState(true);
     const [creating, setCreating] = useState<AccessType | null>(null);

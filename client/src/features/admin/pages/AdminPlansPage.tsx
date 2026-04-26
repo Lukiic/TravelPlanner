@@ -8,10 +8,13 @@ import ConfirmDialog from '../../ui/components/ConfirmDialog';
 import EmptyState from '../../ui/components/EmptyState';
 import Spinner from '../../ui/components/Spinner';
 import PageHeader from '../../ui/layout/PageHeader';
-import { adminApi } from '../api/admin.api';
+import type { IAdminApi } from '../api/IAdminApi';
 
+interface AdminPlansPageProps {
+    adminApi: IAdminApi;
+}
 
-export default function AdminPlansPage() {
+export default function AdminPlansPage({ adminApi }: AdminPlansPageProps) {
     const navigate = useNavigate();
     const [plans, setPlans] = useState<TravelPlan[]>([]);
     const [loading, setLoading] = useState(true);

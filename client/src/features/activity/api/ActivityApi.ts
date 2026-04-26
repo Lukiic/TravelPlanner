@@ -1,8 +1,9 @@
 import travelApi from '../../../api/travel.api';
 import type { Activity } from '../types/Activity';
 import type { CreateActivityRequest } from '../types/CreateActivityRequest';
+import type { IActivityApi } from './IActivityApi';
 
-export const activityApi = {
+export const activityApi: IActivityApi = {
     getAll: (planId: string, date?: string) => {
         const params = date ? { date } : {};
         return travelApi.get<Activity[]>(`/travel-plans/${planId}/activities`, { params }).then(r => r.data);

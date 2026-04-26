@@ -4,6 +4,7 @@ import type { AccessType } from '../types/AccessType';
 import type { ShareResponse } from '../types/ShareResponse';
 import type { ShareToken } from '../types/ShareToken';
 import type { SharedPlanData } from '../types/SharedPlanData';
+import type { ISharingApi } from './ISharingApi';
 
 // Public axios instance — no auth header, no interceptor redirect
 const publicApi = axios.create({
@@ -11,7 +12,7 @@ const publicApi = axios.create({
     headers: { 'Content-Type': 'application/json' },
 });
 
-export const sharingApi = {
+export const sharingApi: ISharingApi = {
     createToken: (planId: string, accessType: AccessType) =>
         travelApi.post<ShareResponse>(`/travel-plans/${planId}/share`, { accessType }).then(r => r.data),
 

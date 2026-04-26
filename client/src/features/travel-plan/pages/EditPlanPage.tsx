@@ -4,13 +4,13 @@ import { toast } from 'react-toastify';
 import Button from '../../ui/components/Button';
 import Spinner from '../../ui/components/Spinner';
 import PageHeader from '../../ui/layout/PageHeader';
-import { travelPlanApi } from '../api/travel-plan.api';
 import PlanForm from '../components/PlanForm';
 import type { CreateTravelPlanRequest } from '../types/CreateTravelPlanRequest';
 import type { TravelPlan } from '../types/TravelPlan';
+import type { TravelPlanProps } from '../types/TravelPlanProps';
 
 
-export default function EditPlanPage() {
+export default function EditPlanPage({ travelPlanApi }: TravelPlanProps) {
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 

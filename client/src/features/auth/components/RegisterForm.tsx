@@ -2,9 +2,9 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../context/AuthContext';
-import { authApi } from '../api/auth.api';
 import Button from '../../ui/components/Button';
 import Input from '../../ui/components/Input';
+import type { AuthProps } from '../types/AuthProps';
 
 interface FormErrors {
     name?: string;
@@ -13,7 +13,7 @@ interface FormErrors {
     confirm?: string;
 }
 
-export default function RegisterForm() {
+export default function RegisterForm({ authApi }: AuthProps) {
     const { login } = useAuth();
     const navigate = useNavigate();
 

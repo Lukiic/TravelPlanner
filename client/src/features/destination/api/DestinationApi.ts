@@ -1,8 +1,9 @@
 import travelApi from '../../../api/travel.api';
 import type { CreateDestinationRequest } from '../types/CreateDestinationRequest';
 import type { Destination } from '../types/Destination';
+import type { IDestinationApi } from './IDestinationApi';
 
-export const destinationApi = {
+export const destinationApi: IDestinationApi = {
     getAll: (planId: string) =>
         travelApi.get<Destination[]>(`/travel-plans/${planId}/destinations`).then(r => r.data),
 

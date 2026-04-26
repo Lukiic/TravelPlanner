@@ -1,6 +1,7 @@
 import RegisterForm from '../components/RegisterForm';
+import type { AuthProps } from '../types/AuthProps';
 
-export default function RegisterPage() {
+export default function RegisterPage({ authApi }: AuthProps) {
     return (
         <div className="min-h-screen bg-navy-950 flex items-center justify-center p-4">
             <div className="w-full max-w-sm">
@@ -15,7 +16,7 @@ export default function RegisterPage() {
                 {/* Card */}
                 <div className="bg-navy-900 border border-navy-700 rounded-2xl p-8 shadow-card">
                     <h2 className="font-display text-xl font-semibold text-white mb-6">Create account</h2>
-                    <RegisterForm />
+                    <RegisterForm authApi={authApi} />
                 </div>
             </div>
         </div>

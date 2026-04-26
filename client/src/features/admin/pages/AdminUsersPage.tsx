@@ -9,11 +9,14 @@ import EmptyState from '../../ui/components/EmptyState';
 import Modal from '../../ui/components/Modal';
 import Spinner from '../../ui/components/Spinner';
 import PageHeader from '../../ui/layout/PageHeader';
-import { adminApi } from '../api/admin.api';
 import CreateUserForm from '../components/CreateUserForm';
+import type { IAdminApi } from '../api/IAdminApi';
 
+interface AdminUsersPageProps {
+    adminApi: IAdminApi;
+}
 
-export default function AdminUsersPage() {
+export default function AdminUsersPage({ adminApi }: AdminUsersPageProps) {
     const { user: currentUser } = useAuth();
     const [users, setUsers] = useState<User[]>([]);
     const [loading, setLoading] = useState(true);
@@ -124,6 +127,7 @@ export default function AdminUsersPage() {
                         setModalOpen(false);
                     }}
                     onCancel={() => setModalOpen(false)}
+                    adminApi={adminApi}
                 />
             </Modal>
 

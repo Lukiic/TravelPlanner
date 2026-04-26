@@ -3,17 +3,18 @@ import { toast } from 'react-toastify';
 import type { ChecklistItem } from '../types/ChecklistItem';
 import ConfirmDialog from '../../ui/components/ConfirmDialog';
 import Spinner from '../../ui/components/Spinner';
-import { checklistApi } from '../api/checklist.api';
 import ChecklistRow from '../components/ChecklistRow';
 import ChecklistSuggestions from '../components/ChecklistSuggestions';
+import type { IChecklistApi } from '../api/IChecklistApi';
 
 
 interface ChecklistSectionProps {
     planId: string;
     readOnly?: boolean;
+    checklistApi: IChecklistApi;
 }
 
-export default function ChecklistSection({ planId, readOnly = false }: ChecklistSectionProps) {
+export default function ChecklistSection({ planId, readOnly = false, checklistApi }: ChecklistSectionProps) {
     const [items, setItems] = useState<ChecklistItem[]>([]);
     const [loading, setLoading] = useState(true);
     const [newItemName, setNewItemName] = useState('');

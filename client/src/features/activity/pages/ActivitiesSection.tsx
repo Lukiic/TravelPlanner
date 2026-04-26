@@ -4,12 +4,12 @@ import Button from '../../ui/components/Button';
 import ConfirmDialog from '../../ui/components/ConfirmDialog';
 import Modal from '../../ui/components/Modal';
 import Spinner from '../../ui/components/Spinner';
-import { activityApi } from '../api/activity.api';
 import ActivityForm from '../components/ActivityForm';
 import ActivityList from '../components/ActivityList';
 import type { Activity } from '../types/Activity';
 import type { CreateActivityRequest } from '../types/CreateActivityRequest';
 import ActivityCalendar from '../components/ActivityCalendar';
+import type { IActivityApi } from '../api/IActivityApi';
 
 
 type View = 'list' | 'calendar';
@@ -20,6 +20,7 @@ interface ActivitiesSectionProps {
     onActivityUpdate?: (id: string, data: Partial<CreateActivityRequest>) => Promise<Activity>;
     travelPlanStartDate?: string;
     travelPlanEndDate?: string;
+    activityApi: IActivityApi;
 }
 
 export default function ActivitiesSection({
@@ -27,7 +28,8 @@ export default function ActivitiesSection({
     readOnly = false,
     onActivityUpdate,
     travelPlanStartDate,
-    travelPlanEndDate
+    travelPlanEndDate,
+    activityApi
 }: ActivitiesSectionProps) {
     const [activities, setActivities] = useState<Activity[]>([]);
     const [loading, setLoading] = useState(true);

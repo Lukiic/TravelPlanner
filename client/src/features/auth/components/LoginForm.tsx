@@ -2,11 +2,11 @@ import { useState } from 'react';
 import { useNavigate, Link } from 'react-router-dom';
 import { toast } from 'react-toastify';
 import { useAuth } from '../../../context/AuthContext';
-import { authApi } from '../api/auth.api';
 import Button from '../../ui/components/Button';
 import Input from '../../ui/components/Input';
+import type { AuthProps } from '../types/AuthProps';
 
-export default function LoginForm() {
+export default function LoginForm({ authApi }: AuthProps) {
     const { login } = useAuth();
     const navigate = useNavigate();
     const [email, setEmail] = useState('');

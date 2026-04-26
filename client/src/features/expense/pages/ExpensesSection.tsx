@@ -4,21 +4,22 @@ import Button from '../../ui/components/Button';
 import ConfirmDialog from '../../ui/components/ConfirmDialog';
 import Modal from '../../ui/components/Modal';
 import Spinner from '../../ui/components/Spinner';
-import { expenseApi } from '../api/expense.api';
 import ExpenseForm from '../components/ExpenseForm';
 import ExpenseTable from '../components/ExpenseTable';
 import type { BudgetSummary } from '../types/BudgetSummary';
 import type { CreateExpenseRequest } from '../types/CreateExpenseRequest';
 import type { Expense } from '../types/Expense';
 import BudgetSummaryCard from '../components/BudgetSummaryCard';
+import type { IExpenseApi } from '../api/IExpenseApi';
 
 
 interface ExpensesSectionProps {
     planId: string;
     readOnly?: boolean;
+    expenseApi: IExpenseApi;
 }
 
-export default function ExpensesSection({ planId, readOnly = false }: ExpensesSectionProps) {
+export default function ExpensesSection({ planId, readOnly = false, expenseApi }: ExpensesSectionProps) {
     const [expenses, setExpenses] = useState<Expense[]>([]);
     const [summary, setSummary] = useState<BudgetSummary | null>(null);
     const [loading, setLoading] = useState(true);

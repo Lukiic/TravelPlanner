@@ -1,8 +1,9 @@
 import travelApi from '../../../api/travel.api';
 import type { CreateTravelPlanRequest, UpdateTravelPlanRequest } from '../types/CreateTravelPlanRequest';
 import type { TravelPlan } from '../types/TravelPlan';
+import type { ITravelPlanApi } from './ITravelPlanApi';
 
-export const travelPlanApi = {
+export const travelPlanApi: ITravelPlanApi = {
     getAll: () =>
         travelApi.get<TravelPlan[]>('/travel-plans').then(r => r.data),
 
