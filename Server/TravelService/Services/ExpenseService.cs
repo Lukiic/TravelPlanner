@@ -66,8 +66,7 @@ namespace TravelService.Services
                 .FirstOrDefaultAsync(e => e.Id == id)
                 ?? throw new KeyNotFoundException("Expense not found.");
 
-            if (expense.TravelPlan.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied.");
+            await VerifyPlanOwnershipAsync(expense.TravelPlanId, userId);
 
             return _mapper.Map<ExpenseDto>(expense);
         }
@@ -103,8 +102,7 @@ namespace TravelService.Services
                 .FirstOrDefaultAsync(e => e.Id == id)
                 ?? throw new KeyNotFoundException("Expense not found.");
 
-            if (expense.TravelPlan.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied.");
+            await VerifyPlanOwnershipAsync(expense.TravelPlanId, userId);
 
             if (dto.Name != null)
                 expense.Name = dto.Name;
@@ -137,8 +135,7 @@ namespace TravelService.Services
                 .FirstOrDefaultAsync(e => e.Id == id)
                 ?? throw new KeyNotFoundException("Expense not found.");
 
-            if (expense.TravelPlan.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied.");
+            await VerifyPlanOwnershipAsync(expense.TravelPlanId, userId);
 
             _db.Expenses.Remove(expense);
             await _db.SaveChangesAsync();
@@ -146,25 +143,34 @@ namespace TravelService.Services
 
         public async Task<BudgetSummaryDto> GetBudgetSummaryAsync(Guid planId, Guid userId)
         {
+            await VerifyPlanOwnershipAsync(planId, userId);
+
             var plan = await _db.TravelPlans
                 .Include(tp => tp.Expenses)
+                .Include(tp => tp.Activities)   // Each Activity has estimated cost
                 .FirstOrDefaultAsync(tp => tp.Id == planId)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
 
-            if (plan.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied.");
-
-            var totalSpent = plan.Expenses.Sum(e => e.Amount);
+            var expenseTotal = plan.Expenses.Sum(e => e.Amount);
             var spentByCategory = plan.Expenses
                 .GroupBy(e => e.Category)
-                .ToDictionary(g => g.Key, g => g.Sum(e => e.Amount));
+                .ToDictionary(g => g.Key, g => (decimal)g.Sum(e => e.Amount));
+
+            var activityEstimates = plan.Activities
+                .Where(a => a.EstimatedCost > 0 && a.Status != "Cancelled")     // Cancelled activity estimated cost is ignored in spendings calculation
+                .Sum(a => a.EstimatedCost);
+
+            if (activityEstimates > 0)
+                spentByCategory["Activities"] = activityEstimates;
+
+            var totalSpent = expenseTotal + activityEstimates;
 
             return new BudgetSummaryDto
             {
                 TotalBudget = plan.Budget,
                 TotalSpent = totalSpent,
                 RemainingBudget = plan.Budget - totalSpent,
-                SpentByCategory = spentByCategory
+                SpentByCategory = spentByCategory,
             };
         }
     }

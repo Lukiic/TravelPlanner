@@ -16,6 +16,7 @@ import type { IActivityApi } from '../../activity/api/IActivityApi';
 import type { IChecklistApi } from '../../checklist/api/IChecklistApi';
 import type { IExpenseApi } from '../../expense/api/IExpenseApi';
 import type { ISharingApi } from '../../sharing/api/ISharingApi';
+import { useAuth } from '../../../context/AuthContext';
 
 
 type Tab = 'overview' | 'destinations' | 'activities' | 'expenses' | 'checklist' | 'share';
@@ -39,6 +40,7 @@ interface PlanDetailPageProps {
 }
 
 export default function PlanDetailPage({ travelPlanApi, destinationApi, activityApi, checklistApi, expenseApi, sharingApi }: PlanDetailPageProps) {
+    const { user } = useAuth();
     const { id } = useParams<{ id: string }>();
     const navigate = useNavigate();
 
@@ -46,6 +48,10 @@ export default function PlanDetailPage({ travelPlanApi, destinationApi, activity
     const [loading, setLoading] = useState(true);
     const [activeTab, setActiveTab] = useState<Tab>('overview');
     const [exportingPdf, setExportingPdf] = useState(false);
+
+    const isOwner = plan ? plan.userId === user?.id : false;
+    const isAdminViewer = !isOwner && user?.role === 'Admin';   // Admin should not see 'Share' tab of users plans
+    const visibleTabs = tabs.filter(tab => !(tab.id === 'share' && isAdminViewer));
 
     useEffect(() => {
         if (!id)
@@ -112,7 +118,7 @@ export default function PlanDetailPage({ travelPlanApi, destinationApi, activity
 
             {/* Tab navigation */}
             <div className="flex gap-1 border-b border-navy-800 mb-8 overflow-x-auto">
-                {tabs.map(tab => (
+                {visibleTabs.map(tab => (
                     <button
                         key={tab.id}
                         onClick={() => setActiveTab(tab.id)}
