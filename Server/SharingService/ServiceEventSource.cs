@@ -1,11 +1,5 @@
-using System;
-using System.Collections.Generic;
 using System.Diagnostics.Tracing;
 using System.Fabric;
-using System.Linq;
-using System.Text;
-using System.Threading.Tasks;
-using Microsoft.ServiceFabric.Services.Runtime;
 
 namespace SharingService
 {
@@ -48,7 +42,7 @@ namespace SharingService
         }
 
         private const int MessageEventId = 1;
-        [Event(MessageEventId, Level = EventLevel.Informational, Message="{0}")]
+        [Event(MessageEventId, Level = EventLevel.Informational, Message = "{0}")]
         public void Message(string message)
         {
             if (this.IsEnabled())
@@ -79,17 +73,17 @@ namespace SharingService
         // This results in more efficient parameter handling, but requires explicit allocation of EventData structure and unsafe code.
         // To enable this code path, define UNSAFE conditional compilation symbol and turn on unsafe code support in project properties.
         private const int ServiceMessageEventId = 2;
-        [Event(ServiceMessageEventId, Level=EventLevel.Informational, Message="{7}")]
+        [Event(ServiceMessageEventId, Level = EventLevel.Informational, Message = "{7}")]
         private
 #if UNSAFE
         unsafe
 #endif
         void ServiceMessage(
-            string serviceName, 
-            string serviceTypeName, 
+            string serviceName,
+            string serviceTypeName,
             long replicaOrInstanceId,
-            Guid partitionId, 
-            string applicationName, 
+            Guid partitionId,
+            string applicationName,
             string applicationTypeName,
             string nodeName,
             string message)

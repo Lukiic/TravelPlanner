@@ -26,16 +26,16 @@ export default function ExpenseTable({ expenses, onEdit, onDelete, readOnly }: E
 
     return (
         <div className="bg-navy-900 border border-navy-700 rounded-2xl overflow-hidden">
-            <table className="w-full text-sm">
+            <table className="w-full text-sm table-fixed">
                 <thead>
                     <tr className="border-b border-navy-700 bg-navy-800">
-                        <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-slate-500 font-medium">Name</th>
-                        <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-slate-500 font-medium">Category</th>
-                        <th className="text-right px-4 py-3 text-xs uppercase tracking-wider text-slate-500 font-medium">Amount</th>
-                        <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-slate-500 font-medium">Date</th>
-                        <th className="text-left px-4 py-3 text-xs uppercase tracking-wider text-slate-500 font-medium">Description</th>
+                        <th className="w-full px-4 py-3 text-xs uppercase tracking-wider text-slate-500 font-medium">Name</th>
+                        <th className="w-full px-4 py-3 text-xs uppercase tracking-wider text-slate-500 font-medium">Category</th>
+                        <th className="w-full px-4 py-3 text-xs uppercase tracking-wider text-slate-500 font-medium">Amount</th>
+                        <th className="w-full px-4 py-3 text-xs uppercase tracking-wider text-slate-500 font-medium">Date</th>
+                        <th className="w-full px-4 py-3 text-xs uppercase tracking-wider text-slate-500 font-medium">Description</th>
                         {!readOnly && (
-                            <th className="text-right px-4 py-3 text-xs uppercase tracking-wider text-slate-500 font-medium">
+                            <th className="w-full px-4 py-3 text-xs uppercase tracking-wider text-slate-500 font-medium text-right">
                                 Actions
                             </th>
                         )}
@@ -48,18 +48,23 @@ export default function ExpenseTable({ expenses, onEdit, onDelete, readOnly }: E
                             className={`border-b border-navy-800 hover:bg-navy-800/50 transition-colors group ${idx === expenses.length - 1 ? 'border-b-0' : ''
                                 }`}
                         >
-                            <td className="px-4 py-3 text-white font-medium">{expense.name}</td>
-                            <td className="px-4 py-3">
+                            <td className="px-4 py-3 text-white font-medium text-center">{expense.name}</td>
+                            <td className="px-4 py-3 text-center">
                                 <CategoryBadge category={expense.category} />
                             </td>
-                            <td className="px-4 py-3 text-right font-mono text-white">
+                            <td className="px-4 py-3 font-mono text-white text-center">
                                 ${expense.amount.toLocaleString(undefined, { minimumFractionDigits: 2, maximumFractionDigits: 2 })}
                             </td>
-                            <td className="px-4 py-3 text-slate-400 font-mono text-xs">
+                            <td className="px-4 py-3 text-slate-400 font-mono text-xs text-center">
                                 {format(parseISO(expense.date), 'MMM d, yyyy')}
                             </td>
-                            <td className="px-4 py-3 text-slate-400 max-w-[180px]">
-                                <span className="truncate block">{expense.description || '—'}</span>
+                            <td className="px-4 py-3 text-slate-400 relative">
+                                <span
+                                    className="truncate block group-hover:text-slate-200 transition-colors"
+                                    title={expense.description} // Full description shown on hover
+                                >
+                                    {expense.description || '—'}
+                                </span>
                             </td>
                             {!readOnly && (
                                 <td className="px-4 py-3">

@@ -1,6 +1,5 @@
 ﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
-using TravelPlanner.Shared.DTOs;
 using TravelService.DTOs;
 using TravelService.Extensions;
 using TravelService.Services;

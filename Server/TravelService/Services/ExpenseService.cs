@@ -5,7 +5,6 @@ using TravelService.Data;
 using TravelService.DTOs;
 using TravelService.Extensions;
 using TravelService.Models;
-using static System.Net.WebRequestMethods;
 
 namespace TravelService.Services
 {

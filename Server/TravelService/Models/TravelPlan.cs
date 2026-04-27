@@ -1,6 +1,4 @@
-﻿using System.Diagnostics;
-
-namespace TravelService.Models
+﻿namespace TravelService.Models
 {
     public class TravelPlan
     {

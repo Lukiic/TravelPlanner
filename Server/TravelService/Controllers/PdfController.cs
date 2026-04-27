@@ -1,14 +1,9 @@
-﻿using iText.Kernel.Pdf;
-using iText.Layout;
-using iText.Layout.Element;
-using iText.Layout.Properties;
-using Microsoft.AspNetCore.Authorization;
+﻿using Microsoft.AspNetCore.Authorization;
 using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TravelService.Data;
 using TravelService.Extensions;
 using TravelService.Services;
-using static System.Net.WebRequestMethods;
 
 namespace TravelService.Controllers
 {
