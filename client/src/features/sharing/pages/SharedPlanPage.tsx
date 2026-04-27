@@ -138,6 +138,8 @@ export default function SharedPlanPage() {
                     <DestinationsSection
                         planId={plan.id}
                         readOnly={!isEdit}
+                        travelPlanStartDate={plan.startDate.slice(0, 10)}
+                        travelPlanEndDate={plan.endDate.slice(0, 10)}
                         destinationApi={sharedApis.destinationApi}
                     />
                 )}
@@ -145,6 +147,8 @@ export default function SharedPlanPage() {
                     <ActivitiesSection
                         planId={plan.id}
                         readOnly={!isEdit}
+                        travelPlanStartDate={plan.startDate.slice(0, 10)}
+                        travelPlanEndDate={plan.endDate.slice(0, 10)}
                         activityApi={sharedApis.activityApi}
                     />
                 )}

@@ -157,6 +157,67 @@
   background: transparent;
 }
 
+.rbc-date-cell {
+  padding: 4px 6px;
+  color: #94a3b8;
+  font-size: 11px;
+}
+
+.rbc-date-cell.rbc-now>a {
+  background: #14b8a6;
+  color: #0f172a;
+  border-radius: 50%;
+  padding: 2px 5px;
+  font-weight: 700;
+}
+
+.rbc-time-content,
+.rbc-time-header-content {
+  border-color: #273549 !important;
+}
+
+.rbc-time-slot {
+  color: #475569;
+  font-size: 11px;
+}
+
+.rbc-current-time-indicator {
+  background: #14b8a6;
+}
+
+.rbc-month-row {
+  border-color: #273549 !important;
+}
+
+.rbc-overlay {
+  background: #1e293b;
+  border: 1px solid #334155;
+  border-radius: 8px;
+  box-shadow: 0 8px 24px rgba(0, 0, 0, 0.5);
+  padding: 8px;
+}
+
+.rbc-overlay-header {
+  color: #94a3b8;
+  font-size: 11px;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  margin-bottom: 6px;
+}
+
+.rbc-label {
+  color: #475569;
+  font-size: 11px;
+}
+
+.rbc-header+.rbc-header {
+  border-color: #334155;
+}
+
+.rbc-allday-cell {
+  background: #1a2535;
+}
+
 .select-base-wrapper {
   position: relative;
 }

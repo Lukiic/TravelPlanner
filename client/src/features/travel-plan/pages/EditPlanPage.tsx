@@ -64,7 +64,7 @@ export default function EditPlanPage({ travelPlanApi }: TravelPlanProps) {
         : {};
 
     return (
-        <div className="p-8 max-w-2xl">
+        <div className="p-8">
             <PageHeader
                 title="Edit Plan"
                 subtitle={plan?.name}

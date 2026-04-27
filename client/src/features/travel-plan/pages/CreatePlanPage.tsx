@@ -25,7 +25,7 @@ export default function CreatePlanPage({ travelPlanApi }: TravelPlanProps) {
     };
 
     return (
-        <div className="p-8 max-w-2xl">
+        <div className="p-8">
             <PageHeader
                 title="New Travel Plan"
                 subtitle="Fill in the details to start planning your trip"
