@@ -1,11 +1,11 @@
 ﻿using AutoMapper;
 using Microsoft.EntityFrameworkCore;
+using System.Numerics;
 using TravelPlanner.Shared.DTOs;
 using TravelService.Data;
 using TravelService.DTOs;
 using TravelService.Extensions;
 using TravelService.Models;
-using static System.Net.WebRequestMethods;
 
 namespace TravelService.Services
 {
@@ -75,8 +75,7 @@ namespace TravelService.Services
             var activity = await _db.Activities.Include(a => a.TravelPlan).FirstOrDefaultAsync(a => a.Id == id)
                 ?? throw new KeyNotFoundException("Activity not found.");
 
-            if (activity.TravelPlan.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied.");
+            await VerifyPlanOwnershipAsync(activity.TravelPlanId, userId);
 
             return _mapper.Map<ActivityDto>(activity);
         }
@@ -112,8 +111,7 @@ namespace TravelService.Services
             var activity = await _db.Activities.Include(a => a.TravelPlan).FirstOrDefaultAsync(a => a.Id == id)
                 ?? throw new KeyNotFoundException("Activity not found.");
 
-            if (activity.TravelPlan.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied.");
+            await VerifyPlanOwnershipAsync(activity.TravelPlanId, userId);
 
             if (dto.Name != null) activity.Name = dto.Name;
             if (dto.Date.HasValue) activity.Date = dto.Date.Value;
@@ -137,8 +135,7 @@ namespace TravelService.Services
             var activity = await _db.Activities.Include(a => a.TravelPlan).FirstOrDefaultAsync(a => a.Id == id)
                 ?? throw new KeyNotFoundException("Activity not found.");
 
-            if (activity.TravelPlan.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied.");
+            await VerifyPlanOwnershipAsync(activity.TravelPlanId, userId);
 
             _db.Activities.Remove(activity);
             await _db.SaveChangesAsync();

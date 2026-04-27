@@ -5,7 +5,6 @@ using TravelService.Data;
 using TravelService.DTOs;
 using TravelService.Extensions;
 using TravelService.Models;
-using static System.Net.WebRequestMethods;
 
 namespace TravelService.Services
 {
@@ -80,8 +79,7 @@ namespace TravelService.Services
                 .FirstOrDefaultAsync(c => c.Id == id)
                 ?? throw new KeyNotFoundException("Checklist item not found.");
 
-            if (item.TravelPlan.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied.");
+            await VerifyPlanOwnershipAsync(item.TravelPlanId, userId);
 
             if (dto.Name != null)
                 item.Name = dto.Name;
@@ -100,8 +98,7 @@ namespace TravelService.Services
                 .FirstOrDefaultAsync(c => c.Id == id)
                 ?? throw new KeyNotFoundException("Checklist item not found.");
 
-            if (item.TravelPlan.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied.");
+            await VerifyPlanOwnershipAsync(item.TravelPlanId, userId);
 
             _db.ChecklistItems.Remove(item);
             await _db.SaveChangesAsync();

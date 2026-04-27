@@ -5,7 +5,6 @@ using TravelService.Data;
 using TravelService.DTOs;
 using TravelService.Extensions;
 using TravelService.Models;
-using static System.Net.WebRequestMethods;
 
 namespace TravelService.Services
 {
@@ -58,8 +57,7 @@ namespace TravelService.Services
             var dest = await _db.Destinations.Include(d => d.TravelPlan).FirstOrDefaultAsync(d => d.Id == id)
                 ?? throw new KeyNotFoundException("Destination not found.");
 
-            if (dest.TravelPlan.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied.");
+            await VerifyPlanOwnershipAsync(dest.TravelPlanId, userId);
 
             return _mapper.Map<DestinationDto>(dest);
         }
@@ -93,8 +91,7 @@ namespace TravelService.Services
             var dest = await _db.Destinations.Include(d => d.TravelPlan).FirstOrDefaultAsync(d => d.Id == id)
                 ?? throw new KeyNotFoundException("Destination not found.");
 
-            if (dest.TravelPlan.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied.");
+            await VerifyPlanOwnershipAsync(dest.TravelPlanId, userId);
 
             if (dto.Name != null) dest.Name = dto.Name;
             if (dto.Location != null) dest.Location = dto.Location;
@@ -112,8 +109,7 @@ namespace TravelService.Services
             var dest = await _db.Destinations.Include(d => d.TravelPlan).FirstOrDefaultAsync(d => d.Id == id)
                 ?? throw new KeyNotFoundException("Destination not found.");
 
-            if (dest.TravelPlan.UserId != userId)
-                throw new UnauthorizedAccessException("Access denied.");
+            await VerifyPlanOwnershipAsync(dest.TravelPlanId, userId);
 
             _db.Destinations.Remove(dest);
             await _db.SaveChangesAsync();

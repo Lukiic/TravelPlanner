@@ -7,7 +7,6 @@ using TravelService.Data;
 using TravelService.DTOs;
 using TravelService.Extensions;
 using TravelService.Models;
-using static System.Net.WebRequestMethods;
 
 namespace TravelService.Services
 {
@@ -24,7 +23,7 @@ namespace TravelService.Services
             _http = http;
         }
 
-        private async Task VerifyPlanOwnershipAsync(TravelPlan plan, Guid userId)
+        private void VerifyPlanOwnershipAsync(TravelPlan plan, Guid userId)
         {
             // Admin users bypass ownership checks
             if (_http.HttpContext?.User.IsInRole("Admin") == true)
@@ -54,7 +53,7 @@ namespace TravelService.Services
             var plan = await _db.TravelPlans.FindAsync(id)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
 
-            await VerifyPlanOwnershipAsync(plan, userId);
+            VerifyPlanOwnershipAsync(plan, userId);
 
             return _mapper.Map<TravelPlanDto>(plan);
         }
@@ -91,7 +90,7 @@ namespace TravelService.Services
             var plan = await _db.TravelPlans.FindAsync(id)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
 
-            await VerifyPlanOwnershipAsync(plan, userId);
+            VerifyPlanOwnershipAsync(plan, userId);
 
             if (dto.Name != null) plan.Name = dto.Name;
             if (dto.Description != null) plan.Description = dto.Description;
@@ -113,7 +112,7 @@ namespace TravelService.Services
             var plan = await _db.TravelPlans.FindAsync(id)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
 
-            await VerifyPlanOwnershipAsync(plan, userId);
+            VerifyPlanOwnershipAsync(plan, userId);
 
             _db.TravelPlans.Remove(plan);
             await _db.SaveChangesAsync();

@@ -8,6 +8,7 @@ using Microsoft.EntityFrameworkCore;
 using TravelService.Data;
 using TravelService.Extensions;
 using TravelService.Services;
+using static System.Net.WebRequestMethods;
 
 namespace TravelService.Controllers
 {
@@ -40,7 +41,7 @@ namespace TravelService.Controllers
             if (plan == null)
                 return NotFound();
 
-            if (plan.UserId != userId)
+            if (plan.UserId != userId && !User.IsInRole("Admin"))
                 return Forbid();
 
             var pdfBytes = _pdfService.GenerateTravelPlanPdf(plan);
