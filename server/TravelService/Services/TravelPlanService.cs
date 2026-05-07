@@ -21,7 +21,7 @@ namespace TravelService.Services
             _http = http;
         }
 
-        private void VerifyPlanOwnershipAsync(TravelPlan plan, Guid userId)
+        private void VerifyPlanOwnership(TravelPlan plan, Guid userId)
         {
             // Admin users bypass ownership checks
             if (_http.HttpContext?.User.IsInRole("Admin") == true)
@@ -51,7 +51,7 @@ namespace TravelService.Services
             var plan = await _db.TravelPlans.FindAsync(id)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
 
-            VerifyPlanOwnershipAsync(plan, userId);
+            VerifyPlanOwnership(plan, userId);
 
             return _mapper.Map<TravelPlanDto>(plan);
         }
@@ -88,7 +88,7 @@ namespace TravelService.Services
             var plan = await _db.TravelPlans.FindAsync(id)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
 
-            VerifyPlanOwnershipAsync(plan, userId);
+            VerifyPlanOwnership(plan, userId);
 
             if (dto.Name != null) plan.Name = dto.Name;
             if (dto.Description != null) plan.Description = dto.Description;
@@ -100,6 +100,9 @@ namespace TravelService.Services
             if (plan.EndDate < plan.StartDate)
                 throw new InvalidOperationException("EndDate cannot be before StartDate.");
 
+            if (plan.Budget < 0)
+                throw new InvalidOperationException("Budget cannot be negative.");
+
             await _db.SaveChangesAsync();
 
             return _mapper.Map<TravelPlanDto>(plan);
@@ -110,7 +113,7 @@ namespace TravelService.Services
             var plan = await _db.TravelPlans.FindAsync(id)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
 
-            VerifyPlanOwnershipAsync(plan, userId);
+            VerifyPlanOwnership(plan, userId);
 
             _db.TravelPlans.Remove(plan);
             await _db.SaveChangesAsync();

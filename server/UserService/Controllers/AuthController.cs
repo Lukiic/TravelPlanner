@@ -16,7 +16,7 @@ namespace UserService.Controllers
         public async Task<IActionResult> Register([FromBody] RegisterRequestDto dto)
         {
             var result = await _authService.RegisterAsync(dto);
-            return Ok(result);
+            return StatusCode(StatusCodes.Status201Created, result);
         }
 
         [HttpPost("login")]

@@ -99,6 +99,9 @@ namespace TravelService.Services
             if (dto.DepartureDate.HasValue) dest.DepartureDate = dto.DepartureDate.Value;
             if (dto.Description != null) dest.Description = dto.Description;
 
+            if (dest.DepartureDate < dest.ArrivalDate)
+                throw new InvalidOperationException("DepartureDate cannot be before ArrivalDate.");
+
             await _db.SaveChangesAsync();
 
             return _mapper.Map<DestinationDto>(dest);

@@ -15,38 +15,33 @@ namespace TravelService.Controllers
     {
         private readonly SharingProxyService _sharingService;
         private readonly QrCodeService _qrCodeService;
-        private readonly TravelDbContext _db;
+        private readonly SharedAccessService _sharedAccess;
         private readonly IConfiguration _configuration;
         private readonly IMapper _mapper;
 
         public SharingController(
             SharingProxyService sharingService,
             QrCodeService qrCodeService,
-            TravelDbContext db,
+            SharedAccessService sharedAccess,
             IConfiguration configuration,
             IMapper mapper)
         {
             _sharingService = sharingService;
             _qrCodeService = qrCodeService;
-            _db = db;
+            _sharedAccess = sharedAccess;
             _configuration = configuration;
             _mapper = mapper;
         }
 
-        // Create a share token and QR code for a plan
         [HttpPost("travel-plans/{planId:guid}/share")]
         [Authorize]
         public async Task<IActionResult> CreateShareToken(Guid planId, [FromBody] CreateShareTokenRequestDto dto)
         {
             var userId = User.GetUserId();
 
-            var plan = await _db.TravelPlans.FindAsync(planId);
-
+            var plan = await _sharedAccess.GetPlanIfOwnerAsync(planId, userId);
             if (plan == null)
                 return NotFound("Travel plan not found.");
-
-            if (plan.UserId != userId)
-                return Forbid();
 
             var accessType = dto.AccessType.ToUpper();
             if (accessType != "VIEW" && accessType != "EDIT")
@@ -54,7 +49,6 @@ namespace TravelService.Controllers
 
             var token = await _sharingService.CreateTokenAsync(planId, accessType);
 
-            // Build the shareable URL (frontend route)
             var baseUrl = _configuration["AppSettings:FrontendBaseUrl"] ?? "http://localhost:5173";
             var shareUrl = $"{baseUrl.TrimEnd('/')}/shared/{token}";
 
@@ -69,25 +63,18 @@ namespace TravelService.Controllers
             });
         }
 
-        // List all active tokens for a plan
         [HttpGet("travel-plans/{planId:guid}/share-tokens")]
         [Authorize]
         public async Task<IActionResult> GetTokensForPlan(Guid planId)
         {
             var userId = User.GetUserId();
-
-            var plan = await _db.TravelPlans.FindAsync(planId);
-            if (plan == null)
-                return NotFound();
-
-            if (plan.UserId != userId)
-                return Forbid();
+            var plan = await _sharedAccess.GetPlanIfOwnerAsync(planId, userId);
+            if (plan == null) return NotFound();
 
             var tokens = await _sharingService.GetTokensForPlanAsync(planId);
             return Ok(tokens);
         }
 
-        // Delete a specific token
         [HttpDelete("share-tokens/{token}")]
         [Authorize]
         public async Task<IActionResult> RevokeToken(string token)
@@ -96,97 +83,32 @@ namespace TravelService.Controllers
             return NoContent();
         }
 
-        // Public endpoint for viewing shared plan (no auth required)
         [HttpGet("shared/{token}")]
         [AllowAnonymous]
         public async Task<IActionResult> GetSharedPlan(string token)
         {
             SharingTokenDto tokenDto;
-            try
-            {
-                tokenDto = await _sharingService.ValidateTokenAsync(token);
-            }
-            catch (KeyNotFoundException)
-            {
-                return NotFound("Token not found.");
-            }
-            catch (InvalidOperationException ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            try { tokenDto = await _sharingService.ValidateTokenAsync(token); }
+            catch (KeyNotFoundException) { return NotFound("Token not found."); }
+            catch (InvalidOperationException ex) { return BadRequest(ex.Message); }
 
-            var plan = await _db.TravelPlans
-                .Include(tp => tp.Destinations)
-                .Include(tp => tp.Activities)
-                .Include(tp => tp.Expenses)
-                .Include(tp => tp.ChecklistItems)
-                .FirstOrDefaultAsync(tp => tp.Id == tokenDto.TravelPlanId);
-
-            if (plan == null)
-                return NotFound("Travel plan no longer exists.");
-
-            var response = new SharedPlanResponseDto
-            {
-                AccessType = tokenDto.AccessType,
-                Plan = new SharedPlanDto
-                {
-                    Id = plan.Id,
-                    Name = plan.Name,
-                    Description = plan.Description,
-                    StartDate = plan.StartDate,
-                    EndDate = plan.EndDate,
-                    Budget = plan.Budget,
-                    Notes = plan.Notes,
-                    CreatedAt = plan.CreatedAt,
-                },
-                Destinations = _mapper.Map<List<DestinationDto>>(plan.Destinations),
-                Activities = _mapper.Map<List<ActivityDto>>(plan.Activities),
-                Expenses = _mapper.Map<List<ExpenseDto>>(plan.Expenses),
-                Checklist = _mapper.Map<List<ChecklistItemDto>>(plan.ChecklistItems),
-            };
-
+            var response = await _sharedAccess.GetSharedPlanDataAsync(tokenDto.TravelPlanId, tokenDto.AccessType, _mapper);
             return Ok(response);
         }
 
-        // Update an activity using shared link
         [HttpPut("shared/{token}/activities/{activityId:guid}")]
         [AllowAnonymous]
         public async Task<IActionResult> UpdateActivityViaToken(string token, Guid activityId, [FromBody] UpdateActivityDto dto)
         {
             SharingTokenDto tokenDto;
-            try
-            {
-                tokenDto = await _sharingService.ValidateTokenAsync(token);
-            }
-            catch (Exception ex)
-            {
-                return BadRequest(ex.Message);
-            }
+            try { tokenDto = await _sharingService.ValidateTokenAsync(token); }
+            catch (Exception ex) { return BadRequest(ex.Message); }
 
             if (tokenDto.AccessType != "EDIT")
                 return Forbid();
 
-            var activity = await _db.Activities
-                .Include(a => a.TravelPlan)
-                .FirstOrDefaultAsync(a => a.Id == activityId);
-
-            if (activity == null)
-                return NotFound();
-
-            if (activity.TravelPlanId != tokenDto.TravelPlanId)
-                return Forbid();
-
-            if (dto.Name != null) activity.Name = dto.Name;
-            if (dto.Date.HasValue) activity.Date = dto.Date.Value;
-            if (dto.Time != null) activity.Time = dto.Time;
-            if (dto.Location != null) activity.Location = dto.Location;
-            if (dto.Description != null) activity.Description = dto.Description;
-            if (dto.EstimatedCost.HasValue) activity.EstimatedCost = dto.EstimatedCost.Value;
-            if (dto.Status != null) activity.Status = dto.Status;
-
-            await _db.SaveChangesAsync();
-
-            return Ok(_mapper.Map<ActivityDto>(activity));
+            var result = await _sharedAccess.UpdateActivityViaTokenAsync(tokenDto.TravelPlanId, activityId, dto, _mapper);
+            return Ok(result);
         }
     }
 }

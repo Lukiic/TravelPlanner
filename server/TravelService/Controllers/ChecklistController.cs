@@ -15,13 +15,20 @@ namespace TravelService.Controllers
 
         public ChecklistController(ChecklistService service) => _service = service;
 
+        [HttpGet("{id:guid}")]
+        public async Task<IActionResult> GetById(Guid planId, Guid id)
+            => Ok(await _service.GetByIdAsync(id, User.GetUserId()));
+
         [HttpGet]
         public async Task<IActionResult> GetAll(Guid planId)
             => Ok(await _service.GetAllForPlanAsync(planId, User.GetUserId()));
 
         [HttpPost]
         public async Task<IActionResult> Create(Guid planId, [FromBody] CreateChecklistItemDto dto)
-            => Ok(await _service.CreateAsync(planId, dto, User.GetUserId()));
+        {
+            var result = await _service.CreateAsync(planId, dto, User.GetUserId());
+            return CreatedAtAction(nameof(GetById), new { planId, id = result.Id }, result);
+        }
 
         [HttpPut("{id:guid}")]
         public async Task<IActionResult> Update(Guid planId, Guid id, [FromBody] UpdateChecklistItemDto dto)

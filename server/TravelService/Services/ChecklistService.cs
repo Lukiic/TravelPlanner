@@ -43,6 +43,17 @@ namespace TravelService.Services
                 throw new UnauthorizedAccessException("Access denied.");
         }
 
+        public async Task<ChecklistItemDto> GetByIdAsync(Guid id, Guid userId)
+        {
+            var item = await _db.ChecklistItems
+                .Include(c => c.TravelPlan)
+                .FirstOrDefaultAsync(c => c.Id == id)
+                ?? throw new KeyNotFoundException("Checklist item not found.");
+
+            await VerifyPlanOwnershipAsync(item.TravelPlanId, userId);
+            return _mapper.Map<ChecklistItemDto>(item);
+        }
+
         public async Task<List<ChecklistItemDto>> GetAllForPlanAsync(Guid planId, Guid userId)
         {
             await VerifyPlanOwnershipAsync(planId, userId);

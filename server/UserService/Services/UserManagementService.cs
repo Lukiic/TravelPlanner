@@ -33,8 +33,9 @@ namespace UserService.Services
             var user = await _db.Users.FindAsync(id)
                 ?? throw new KeyNotFoundException("User not found.");
 
-            user.Name = dto.Name;
-            user.Email = dto.Email;
+            if (dto.Name != null) user.Name = dto.Name;
+            if (dto.Email != null) user.Email = dto.Email;
+
             await _db.SaveChangesAsync();
 
             return _mapper.Map<UserDto>(user);

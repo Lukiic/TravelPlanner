@@ -176,7 +176,7 @@ namespace TravelService.Services
 
                     table.AddCell(StyledCell(e.Name, rowBg, cellBorder, false));
                     table.AddCell(StyledCell(e.Category, rowBg, cellBorder, false));
-                    table.AddCell(StyledCell($"${e.Amount:N2}", rowBg, cellBorder, true));
+                    table.AddCell(StyledCell($"${e.Amount:N2}", rowBg, cellBorder, false));
                     table.AddCell(StyledCell(e.Date.ToString("dd MMM yyyy"), rowBg, cellBorder, false));
                     alt = !alt;
                 }

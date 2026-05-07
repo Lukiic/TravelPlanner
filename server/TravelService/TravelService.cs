@@ -58,6 +58,7 @@ namespace TravelService
                         builder.Services.AddScoped<ExpenseService>();
                         builder.Services.AddScoped<ChecklistService>();
                         builder.Services.AddScoped<PdfService>();
+                        builder.Services.AddScoped<SharedAccessService>();
                         builder.Services.AddSingleton<SharingProxyService>(); // Singleton — stateless
                         builder.Services.AddSingleton<QrCodeService>();       // Singleton — stateless                        
 

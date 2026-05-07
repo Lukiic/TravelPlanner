@@ -12,7 +12,7 @@ using UserService.Data;
 namespace UserService.Migrations
 {
     [DbContext(typeof(UserDbContext))]
-    [Migration("20260425084247_InitialCreate")]
+    [Migration("20260507110111_InitialCreate")]
     partial class InitialCreate
     {
         /// <inheritdoc />
@@ -70,7 +70,7 @@ namespace UserService.Migrations
                             CreatedAt = new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc),
                             Email = "admin@gmail.com",
                             Name = "Admin",
-                            PasswordHash = "$2a$11$bO3/KpPtAYcjKA5GkC6ej.i8muqkqfOHYxcAbwqwHWN7fVuMRmzNq",
+                            PasswordHash = "$2a$11$21lVCOXdzjfUENsaA7Njw.rZflE83XYwmjcHbHbrSv2kg6IREobQC",
                             Role = "Admin"
                         });
                 });

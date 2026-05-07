@@ -1,4 +1,5 @@
-﻿using Microsoft.EntityFrameworkCore.Migrations;
+﻿using System;
+using Microsoft.EntityFrameworkCore.Migrations;
 
 #nullable disable
 
@@ -29,7 +30,7 @@ namespace UserService.Migrations
             migrationBuilder.InsertData(
                 table: "Users",
                 columns: new[] { "Id", "CreatedAt", "Email", "Name", "PasswordHash", "Role" },
-                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "admin@gmail.com", "Admin", "$2a$11$bO3/KpPtAYcjKA5GkC6ej.i8muqkqfOHYxcAbwqwHWN7fVuMRmzNq", "Admin" });
+                values: new object[] { new Guid("00000000-0000-0000-0000-000000000001"), new DateTime(2026, 1, 1, 0, 0, 0, 0, DateTimeKind.Utc), "admin@gmail.com", "Admin", "$2a$11$21lVCOXdzjfUENsaA7Njw.rZflE83XYwmjcHbHbrSv2kg6IREobQC", "Admin" });
 
             migrationBuilder.CreateIndex(
                 name: "IX_Users_Email",
