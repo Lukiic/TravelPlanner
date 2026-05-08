@@ -21,5 +21,5 @@ export const adminApi: IAdminApi = {
         travelApi.get<TravelPlan[]>('/admin/travel-plans').then(r => r.data),
 
     deletePlan: (id: string) =>
-        travelApi.delete(`/admin/travel-plans/${id}`),
+        travelApi.delete(`/travel-plans/${id}`),
 };

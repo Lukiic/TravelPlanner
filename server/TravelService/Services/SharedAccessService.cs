@@ -61,27 +61,5 @@ namespace TravelService.Services
                 Checklist = mapper.Map<List<ChecklistItemDto>>(plan.ChecklistItems),
             };
         }
-
-        public async Task<ActivityDto> UpdateActivityViaTokenAsync(Guid planId, Guid activityId, UpdateActivityDto dto, IMapper mapper)
-        {
-            var activity = await _db.Activities
-                .Include(a => a.TravelPlan)
-                .FirstOrDefaultAsync(a => a.Id == activityId)
-                ?? throw new KeyNotFoundException("Activity not found.");
-
-            if (activity.TravelPlanId != planId)
-                throw new UnauthorizedAccessException("Activity does not belong to this plan.");
-
-            if (dto.Name != null) activity.Name = dto.Name;
-            if (dto.Date.HasValue) activity.Date = dto.Date.Value;
-            if (dto.Time != null) activity.Time = dto.Time;
-            if (dto.Location != null) activity.Location = dto.Location;
-            if (dto.Description != null) activity.Description = dto.Description;
-            if (dto.EstimatedCost.HasValue) activity.EstimatedCost = dto.EstimatedCost.Value;
-            if (dto.Status != null) activity.Status = dto.Status;
-
-            await _db.SaveChangesAsync();
-            return mapper.Map<ActivityDto>(activity);
-        }
     }
 }

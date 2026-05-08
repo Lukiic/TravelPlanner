@@ -9,5 +9,4 @@ export interface ISharingApi {
     getTokens: (planId: string) => Promise<ShareToken[]>;
     revokeToken: (token: string) => Promise<AxiosResponse<void>>;
     getSharedPlan: (token: string) => Promise<SharedPlanData>;
-    updateSharedActivity: (token: string, activityId: string, data: any) => Promise<any>;
 }

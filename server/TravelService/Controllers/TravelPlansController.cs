@@ -46,13 +46,5 @@ namespace TravelService.Controllers
         [Authorize(Roles = "Admin")]
         public async Task<IActionResult> GetAllAdmin()
             => Ok(await _service.GetAllAdminAsync());
-
-        [HttpDelete("/admin/travel-plans/{id:guid}")]
-        [Authorize(Roles = "Admin")]
-        public async Task<IActionResult> DeleteAdmin(Guid id)
-        {
-            await _service.DeleteAdminAsync(id);
-            return NoContent();
-        }
     }
 }

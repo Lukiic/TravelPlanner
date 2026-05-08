@@ -133,14 +133,5 @@ namespace TravelService.Services
             var plans = await _db.TravelPlans.ToListAsync();
             return _mapper.Map<List<TravelPlanDto>>(plans);
         }
-
-        public async Task DeleteAdminAsync(Guid id)
-        {
-            var plan = await _db.TravelPlans.FindAsync(id)
-                ?? throw new KeyNotFoundException("Travel plan not found.");
-
-            _db.TravelPlans.Remove(plan);
-            await _db.SaveChangesAsync();
-        }
     }
 }

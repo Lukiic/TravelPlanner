@@ -25,7 +25,4 @@ export const sharingApi: ISharingApi = {
     // Public — no auth
     getSharedPlan: (token: string) =>
         publicApi.get<SharedPlanData>(`/shared/${token}`).then(r => r.data),
-
-    updateSharedActivity: (token: string, activityId: string, data: any) =>
-        publicApi.put(`/shared/${token}/activities/${activityId}`, data).then(r => r.data),
 };

@@ -96,20 +96,5 @@ namespace TravelService.Controllers
             var response = await _sharedAccess.GetSharedPlanDataAsync(tokenDto.TravelPlanId, tokenDto.AccessType, _mapper);
             return Ok(response);
         }
-
-        [HttpPut("shared/{token}/activities/{activityId:guid}")]
-        [AllowAnonymous]
-        public async Task<IActionResult> UpdateActivityViaToken(string token, Guid activityId, [FromBody] UpdateActivityDto dto)
-        {
-            SharingTokenDto tokenDto;
-            try { tokenDto = await _sharingService.ValidateTokenAsync(token); }
-            catch (Exception ex) { return BadRequest(ex.Message); }
-
-            if (tokenDto.AccessType != "EDIT")
-                return Forbid();
-
-            var result = await _sharedAccess.UpdateActivityViaTokenAsync(tokenDto.TravelPlanId, activityId, dto, _mapper);
-            return Ok(result);
-        }
     }
 }
