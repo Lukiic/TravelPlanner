@@ -17,7 +17,12 @@ namespace TravelService.Controllers
 
         [HttpGet]
         public async Task<IActionResult> GetAll()
-            => Ok(await _service.GetAllForUserAsync(User.GetUserId()));
+        {
+            if (User.IsShareTokenIdentity())
+                return Forbid();
+
+            return Ok(await _service.GetAllForUserAsync(User.GetUserId()));
+        }
 
         [HttpGet("{id:guid}")]
         public async Task<IActionResult> GetById(Guid id)
@@ -26,6 +31,9 @@ namespace TravelService.Controllers
         [HttpPost]
         public async Task<IActionResult> Create([FromBody] CreateTravelPlanDto dto)
         {
+            if (User.IsShareTokenIdentity())
+                return Forbid();
+
             var result = await _service.CreateAsync(dto, User.GetUserId());
             return CreatedAtAction(nameof(GetById), new { id = result.Id }, result);
         }

@@ -37,8 +37,10 @@ namespace TravelService.Controllers
         [Authorize]
         public async Task<IActionResult> CreateShareToken(Guid planId, [FromBody] CreateShareTokenRequestDto dto)
         {
-            var userId = User.GetUserId();
+            if (User.IsShareTokenIdentity())
+                return Forbid();
 
+            var userId = User.GetUserId();
             var plan = await _sharedAccess.GetPlanIfOwnerAsync(planId, userId);
             if (plan == null)
                 return NotFound("Travel plan not found.");
@@ -67,6 +69,9 @@ namespace TravelService.Controllers
         [Authorize]
         public async Task<IActionResult> GetTokensForPlan(Guid planId)
         {
+            if (User.IsShareTokenIdentity())
+                return Forbid();
+
             var userId = User.GetUserId();
             var plan = await _sharedAccess.GetPlanIfOwnerAsync(planId, userId);
             if (plan == null)
@@ -80,6 +85,18 @@ namespace TravelService.Controllers
         [Authorize]
         public async Task<IActionResult> RevokeToken(string token)
         {
+            var userId = User.GetUserId();
+
+            SharingTokenDto tokenDto;
+            try { tokenDto = await _sharingService.ValidateTokenAsync(token); }
+            catch (KeyNotFoundException) { return NotFound("Token not found."); }
+            catch (InvalidOperationException) { return NotFound("Token not found or has already expired."); }
+
+            // Checking if user owns that plan
+            var plan = await _sharedAccess.GetPlanIfOwnerAsync(tokenDto.TravelPlanId, userId);
+            if (plan == null)
+                return NotFound("Travel plan not found.");
+
             await _sharingService.RevokeTokenAsync(token);
             return NoContent();
         }
