@@ -127,7 +127,21 @@ namespace TravelService.Services
             await _db.SaveChangesAsync();
         }
 
-        // Admin methods
+        public async Task<TravelPlan> GetFullPlanForExportAsync(Guid planId, Guid userId)
+        {
+            var plan = await _db.TravelPlans
+                .Include(tp => tp.Destinations)
+                .Include(tp => tp.Activities)
+                .Include(tp => tp.Expenses)
+                .Include(tp => tp.ChecklistItems)
+                .FirstOrDefaultAsync(tp => tp.Id == planId)
+                ?? throw new KeyNotFoundException("Travel plan not found.");
+
+            VerifyPlanOwnership(plan, userId);
+
+            return plan;
+        }
+
         public async Task<List<TravelPlanDto>> GetAllAdminAsync()
         {
             var plans = await _db.TravelPlans.ToListAsync();

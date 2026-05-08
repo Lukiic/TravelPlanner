@@ -3,6 +3,7 @@ using Microsoft.AspNetCore.Mvc;
 using Microsoft.EntityFrameworkCore;
 using TravelService.Data;
 using TravelService.Extensions;
+using TravelService.Models;
 using TravelService.Services;
 
 namespace TravelService.Controllers
@@ -12,36 +13,31 @@ namespace TravelService.Controllers
     [Authorize]
     public class PdfController : ControllerBase
     {
-        private readonly TravelDbContext _db;
+        private readonly TravelPlanService _travelPlanService;
         private readonly PdfService _pdfService;
 
-        public PdfController(TravelDbContext db, PdfService pdfService)
+        public PdfController(TravelPlanService travelPlanService, PdfService pdfService)
         {
-            _db = db;
+            _travelPlanService = travelPlanService;
             _pdfService = pdfService;
         }
 
         [HttpGet("{planId:guid}/export-pdf")]
         public async Task<IActionResult> ExportPdf(Guid planId)
         {
-            var userId = User.GetUserId();
+            TravelPlan plan;
 
-            var plan = await _db.TravelPlans
-                .Include(tp => tp.Destinations)
-                .Include(tp => tp.Activities)
-                .Include(tp => tp.Expenses)
-                .Include(tp => tp.ChecklistItems)
-                .FirstOrDefaultAsync(tp => tp.Id == planId);
-
-            if (plan == null)
-                return NotFound();
-
-            if (plan.UserId != userId && !User.IsInRole("Admin"))
-                return Forbid();
+            try
+            {
+                plan = await _travelPlanService.GetFullPlanForExportAsync(planId, User.GetUserId());
+            }
+            catch (KeyNotFoundException) { return NotFound(); }
+            catch (UnauthorizedAccessException) { return Forbid(); }
 
             var pdfBytes = _pdfService.GenerateTravelPlanPdf(plan);
 
             var safeFileName = string.Concat(plan.Name.Split(Path.GetInvalidFileNameChars()));
+
             return File(pdfBytes, "application/pdf", $"{safeFileName}.pdf");
         }
     }
