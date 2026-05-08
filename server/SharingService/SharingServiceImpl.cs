@@ -30,7 +30,7 @@ namespace SharingService
         public async Task<string> CreateShareTokenAsync(Guid travelPlanId, string accessType)
         {
             var dict = await GetDictionaryAsync();
-            var token = Guid.NewGuid().ToString("N");
+            var token = Guid.NewGuid().ToString("N");   // N - Number (deletes '-' from GUID)
 
             var data = new SharingTokenData
             {

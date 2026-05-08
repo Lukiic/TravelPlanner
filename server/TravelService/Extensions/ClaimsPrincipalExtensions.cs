@@ -23,5 +23,8 @@ namespace TravelService.Extensions
             var val = user.FindFirstValue("share_plan_id");
             return val != null ? Guid.Parse(val) : null;
         }
+
+        public static string? GetShareTokenAccessType(this ClaimsPrincipal user)
+            => user.FindFirstValue("share_access_type");
     }
 }

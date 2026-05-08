@@ -69,7 +69,8 @@ namespace TravelService.Controllers
         {
             var userId = User.GetUserId();
             var plan = await _sharedAccess.GetPlanIfOwnerAsync(planId, userId);
-            if (plan == null) return NotFound();
+            if (plan == null)
+                return NotFound();
 
             var tokens = await _sharingService.GetTokensForPlanAsync(planId);
             return Ok(tokens);

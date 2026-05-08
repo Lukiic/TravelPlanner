@@ -21,7 +21,7 @@ namespace TravelService.Services
             _http = http;
         }
 
-        private void VerifyPlanOwnership(TravelPlan plan, Guid userId)
+        private void VerifyPlanOwnership(TravelPlan plan, Guid userId, bool requiresEditAccess = false)
         {
             // Admin users bypass ownership checks
             if (_http.HttpContext?.User.IsInRole("Admin") == true)
@@ -33,6 +33,14 @@ namespace TravelService.Services
             {
                 if (sharePlanId.Value != plan.Id)
                     throw new UnauthorizedAccessException("Share token is not valid for this plan.");
+
+                if (requiresEditAccess)
+                {
+                    var accessType = _http.HttpContext?.User.GetShareTokenAccessType();
+                    if (accessType != "EDIT")
+                        throw new UnauthorizedAccessException("This share token is read-only.");
+                }
+
                 return;
             }
 
@@ -88,7 +96,7 @@ namespace TravelService.Services
             var plan = await _db.TravelPlans.FindAsync(id)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
 
-            VerifyPlanOwnership(plan, userId);
+            VerifyPlanOwnership(plan, userId, requiresEditAccess: true);
 
             if (dto.Name != null) plan.Name = dto.Name;
             if (dto.Description != null) plan.Description = dto.Description;
@@ -113,7 +121,7 @@ namespace TravelService.Services
             var plan = await _db.TravelPlans.FindAsync(id)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
 
-            VerifyPlanOwnership(plan, userId);
+            VerifyPlanOwnership(plan, userId, requiresEditAccess: true);
 
             _db.TravelPlans.Remove(plan);
             await _db.SaveChangesAsync();

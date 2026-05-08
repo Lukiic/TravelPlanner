@@ -23,7 +23,7 @@ namespace TravelService.Services
             _http = http;
         }
 
-        private async Task VerifyPlanOwnershipAsync(Guid planId, Guid userId)
+        private async Task VerifyPlanOwnershipAsync(Guid planId, Guid userId, bool requiresEditAccess = false)
         {
             var plan = await _db.TravelPlans.FindAsync(planId)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
@@ -38,6 +38,14 @@ namespace TravelService.Services
             {
                 if (sharePlanId.Value != planId)
                     throw new UnauthorizedAccessException("Share token is not valid for this plan.");
+
+                if (requiresEditAccess)
+                {
+                    var accessType = _http.HttpContext?.User.GetShareTokenAccessType();
+                    if (accessType != "EDIT")
+                        throw new UnauthorizedAccessException("This share token is read-only.");
+                }
+
                 return;
             }
 
@@ -81,7 +89,7 @@ namespace TravelService.Services
 
         public async Task<ActivityDto> CreateAsync(Guid planId, CreateActivityDto dto, Guid userId)
         {
-            await VerifyPlanOwnershipAsync(planId, userId);
+            await VerifyPlanOwnershipAsync(planId, userId, requiresEditAccess: true);
 
             if (!ValidStatuses.Contains(dto.Status))
                 throw new InvalidOperationException($"Status must be one of: {string.Join(", ", ValidStatuses)}");
@@ -110,7 +118,7 @@ namespace TravelService.Services
             var activity = await _db.Activities.Include(a => a.TravelPlan).FirstOrDefaultAsync(a => a.Id == id)
                 ?? throw new KeyNotFoundException("Activity not found.");
 
-            await VerifyPlanOwnershipAsync(activity.TravelPlanId, userId);
+            await VerifyPlanOwnershipAsync(activity.TravelPlanId, userId, requiresEditAccess: true);
 
             if (dto.Name != null) activity.Name = dto.Name;
             if (dto.Date.HasValue) activity.Date = dto.Date.Value;
@@ -134,7 +142,7 @@ namespace TravelService.Services
             var activity = await _db.Activities.Include(a => a.TravelPlan).FirstOrDefaultAsync(a => a.Id == id)
                 ?? throw new KeyNotFoundException("Activity not found.");
 
-            await VerifyPlanOwnershipAsync(activity.TravelPlanId, userId);
+            await VerifyPlanOwnershipAsync(activity.TravelPlanId, userId, requiresEditAccess: true);
 
             _db.Activities.Remove(activity);
             await _db.SaveChangesAsync();

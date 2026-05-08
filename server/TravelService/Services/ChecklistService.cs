@@ -21,7 +21,7 @@ namespace TravelService.Services
             _http = http;
         }
 
-        private async Task VerifyPlanOwnershipAsync(Guid planId, Guid userId)
+        private async Task VerifyPlanOwnershipAsync(Guid planId, Guid userId, bool requiresEditAccess = false)
         {
             var plan = await _db.TravelPlans.FindAsync(planId)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
@@ -36,6 +36,14 @@ namespace TravelService.Services
             {
                 if (sharePlanId.Value != planId)
                     throw new UnauthorizedAccessException("Share token is not valid for this plan.");
+
+                if (requiresEditAccess)
+                {
+                    var accessType = _http.HttpContext?.User.GetShareTokenAccessType();
+                    if (accessType != "EDIT")
+                        throw new UnauthorizedAccessException("This share token is read-only.");
+                }
+
                 return;
             }
 
@@ -67,7 +75,7 @@ namespace TravelService.Services
 
         public async Task<ChecklistItemDto> CreateAsync(Guid planId, CreateChecklistItemDto dto, Guid userId)
         {
-            await VerifyPlanOwnershipAsync(planId, userId);
+            await VerifyPlanOwnershipAsync(planId, userId, requiresEditAccess: true);
 
             var item = new ChecklistItem
             {
@@ -90,7 +98,7 @@ namespace TravelService.Services
                 .FirstOrDefaultAsync(c => c.Id == id)
                 ?? throw new KeyNotFoundException("Checklist item not found.");
 
-            await VerifyPlanOwnershipAsync(item.TravelPlanId, userId);
+            await VerifyPlanOwnershipAsync(item.TravelPlanId, userId, requiresEditAccess: true);
 
             if (dto.Name != null)
                 item.Name = dto.Name;
@@ -109,7 +117,7 @@ namespace TravelService.Services
                 .FirstOrDefaultAsync(c => c.Id == id)
                 ?? throw new KeyNotFoundException("Checklist item not found.");
 
-            await VerifyPlanOwnershipAsync(item.TravelPlanId, userId);
+            await VerifyPlanOwnershipAsync(item.TravelPlanId, userId, requiresEditAccess: true);
 
             _db.ChecklistItems.Remove(item);
             await _db.SaveChangesAsync();

@@ -24,7 +24,7 @@ namespace TravelService.Services
             _http = http;
         }
 
-        private async Task VerifyPlanOwnershipAsync(Guid planId, Guid userId)
+        private async Task VerifyPlanOwnershipAsync(Guid planId, Guid userId, bool requiresEditAccess = false)
         {
             var plan = await _db.TravelPlans.FindAsync(planId)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
@@ -39,6 +39,14 @@ namespace TravelService.Services
             {
                 if (sharePlanId.Value != planId)
                     throw new UnauthorizedAccessException("Share token is not valid for this plan.");
+
+                if (requiresEditAccess)
+                {
+                    var accessType = _http.HttpContext?.User.GetShareTokenAccessType();
+                    if (accessType != "EDIT")
+                        throw new UnauthorizedAccessException("This share token is read-only.");
+                }
+
                 return;
             }
 
@@ -72,7 +80,7 @@ namespace TravelService.Services
 
         public async Task<ExpenseDto> CreateAsync(Guid planId, CreateExpenseDto dto, Guid userId)
         {
-            await VerifyPlanOwnershipAsync(planId, userId);
+            await VerifyPlanOwnershipAsync(planId, userId, requiresEditAccess: true);
 
             if (!ValidCategories.Contains(dto.Category))
                 throw new InvalidOperationException($"Category must be one of: {string.Join(", ", ValidCategories)}");
@@ -101,7 +109,7 @@ namespace TravelService.Services
                 .FirstOrDefaultAsync(e => e.Id == id)
                 ?? throw new KeyNotFoundException("Expense not found.");
 
-            await VerifyPlanOwnershipAsync(expense.TravelPlanId, userId);
+            await VerifyPlanOwnershipAsync(expense.TravelPlanId, userId, requiresEditAccess: true);
 
             if (dto.Name != null)
                 expense.Name = dto.Name;
@@ -134,7 +142,7 @@ namespace TravelService.Services
                 .FirstOrDefaultAsync(e => e.Id == id)
                 ?? throw new KeyNotFoundException("Expense not found.");
 
-            await VerifyPlanOwnershipAsync(expense.TravelPlanId, userId);
+            await VerifyPlanOwnershipAsync(expense.TravelPlanId, userId, requiresEditAccess: true);
 
             _db.Expenses.Remove(expense);
             await _db.SaveChangesAsync();

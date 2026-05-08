@@ -21,7 +21,7 @@ namespace TravelService.Services
             _http = http;
         }
 
-        private async Task VerifyPlanOwnershipAsync(Guid planId, Guid userId)
+        private async Task VerifyPlanOwnershipAsync(Guid planId, Guid userId, bool requiresEditAccess = false)
         {
             var plan = await _db.TravelPlans.FindAsync(planId)
                 ?? throw new KeyNotFoundException("Travel plan not found.");
@@ -36,6 +36,14 @@ namespace TravelService.Services
             {
                 if (sharePlanId.Value != planId)
                     throw new UnauthorizedAccessException("Share token is not valid for this plan.");
+
+                if (requiresEditAccess)
+                {
+                    var accessType = _http.HttpContext?.User.GetShareTokenAccessType();
+                    if (accessType != "EDIT")
+                        throw new UnauthorizedAccessException("This share token is read-only.");
+                }
+
                 return;
             }
 
@@ -64,7 +72,7 @@ namespace TravelService.Services
 
         public async Task<DestinationDto> CreateAsync(Guid planId, CreateDestinationDto dto, Guid userId)
         {
-            await VerifyPlanOwnershipAsync(planId, userId);
+            await VerifyPlanOwnershipAsync(planId, userId, requiresEditAccess: true);
 
             if (dto.DepartureDate < dto.ArrivalDate)
                 throw new InvalidOperationException("DepartureDate cannot be before ArrivalDate.");
@@ -91,7 +99,7 @@ namespace TravelService.Services
             var dest = await _db.Destinations.Include(d => d.TravelPlan).FirstOrDefaultAsync(d => d.Id == id)
                 ?? throw new KeyNotFoundException("Destination not found.");
 
-            await VerifyPlanOwnershipAsync(dest.TravelPlanId, userId);
+            await VerifyPlanOwnershipAsync(dest.TravelPlanId, userId, requiresEditAccess: true);
 
             if (dto.Name != null) dest.Name = dto.Name;
             if (dto.Location != null) dest.Location = dto.Location;
@@ -112,7 +120,7 @@ namespace TravelService.Services
             var dest = await _db.Destinations.Include(d => d.TravelPlan).FirstOrDefaultAsync(d => d.Id == id)
                 ?? throw new KeyNotFoundException("Destination not found.");
 
-            await VerifyPlanOwnershipAsync(dest.TravelPlanId, userId);
+            await VerifyPlanOwnershipAsync(dest.TravelPlanId, userId, requiresEditAccess: true);
 
             _db.Destinations.Remove(dest);
             await _db.SaveChangesAsync();
