@@ -19,7 +19,7 @@ interface FormErrors {
     date?: string;
 }
 
-const CATEGORIES: ExpenseCategory[] = ['Transport', 'Accommodation', 'Food', 'Tickets', 'Shopping', 'Other'];
+const CATEGORIES: ExpenseCategory[] = ['Transport', 'Accommodation', 'Food', 'Tickets', 'Shopping', 'Other', 'Activities'];
 
 const empty: CreateExpenseRequest = {
     name: '',

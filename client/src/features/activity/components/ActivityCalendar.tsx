@@ -32,14 +32,12 @@ interface CalendarEvent {
 interface Props {
     activities: Activity[];
     onSelectActivity: (activity: Activity) => void;
-    onAddActivity: () => void;
     readOnly?: boolean;
 }
 
 export default function ActivityCalendar({
     activities,
     onSelectActivity,
-    onAddActivity,
     readOnly,
 }: Props) {
     const [date, setDate] = useState<Date>(new Date());
@@ -68,7 +66,10 @@ export default function ActivityCalendar({
                 onNavigate={setDate}
                 view={view}
                 onView={setView}
-                onSelectEvent={e => onSelectActivity(e.resource)}
+                onSelectEvent={e => {
+                    if (readOnly) return;
+                    onSelectActivity(e.resource);
+                }}
                 eventPropGetter={event => ({
                     style: {
                         backgroundColor: STATUS_COLORS[event.resource.status as ActivityStatus] ?? '#0d9488',
@@ -76,6 +77,7 @@ export default function ActivityCalendar({
                         borderRadius: '4px',
                         fontSize: '12px',
                         padding: '1px 6px',
+                        cursor: readOnly ? 'default' : 'pointer',
                     },
                 })}
                 tooltipAccessor={event => {
