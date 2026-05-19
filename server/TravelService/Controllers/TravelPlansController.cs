@@ -45,6 +45,9 @@ namespace TravelService.Controllers
         [HttpDelete("{id:guid}")]
         public async Task<IActionResult> Delete(Guid id)
         {
+            if (User.IsShareTokenIdentity())
+                return Forbid();
+
             await _service.DeleteAsync(id, User.GetUserId());
             return NoContent();
         }
